@@ -17,7 +17,7 @@
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:'Source Sans Pro',Arial,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;}
 
-    /* ── AUTH (same as before) ─────────────────────────────── */
+    /* ── AUTH SCREEN ─────────────────────────────── */
     .auth-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
     .auth-screen.hidden{display:none;}
     .auth-card{background:white;border-radius:16px;width:100%;max-width:440px;box-shadow:0 30px 90px rgba(0,0,0,0.6);overflow:hidden;}
@@ -109,7 +109,7 @@
     .toolbar-btn{background:transparent;border:none;color:#e0e0e0;padding:6px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:.85rem;}
     .toolbar-btn:hover{background:#3a3a3a;}
     .toolbar-btn svg{width:14px;height:14px;}
-    .explorer-path{background:#2a2a2a;padding:8px 12px;border-bottom:1px solid #3a3a3a;color:#e0e0e0;font-size:.9rem;display:flex;align-items:center;gap:6px;}
+    .explorer-path{background:#2a2a2a;padding:8px 12px;border-bottom:1px solid #3a3a3a;color:#e0e0e0;font-size:.9rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
     .path-item{display:flex;align-items:center;gap:3px;cursor:pointer;}
     .path-item:hover{color:var(--accent);}
     .path-sep{margin:0 5px;color:#666;}
@@ -169,12 +169,15 @@
     .drag-placeholder{height:60px;background:#2a2a2a;border:2px dashed var(--accent);border-radius:6px;margin:8px 0;}
 
     /* Modals (dark theme) */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;padding:15px;overflow-y:auto;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:400;display:none;align-items:center;justify-content:center;padding:15px;overflow-y:auto;}
     .modal-overlay.active{display:flex;}
     .modal{background:#2d2d2d;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid #3a3a3a;}
     .modal-header{color:white;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0;background:var(--primary);}
+    .modal-header.green{background:var(--success);}
+    .modal-header.purple{background:var(--purple);}
+    .modal-header.red{background:var(--danger);}
     .modal-header h2{font-family:'Oswald',sans-serif;font-size:1.1rem;display:flex;align-items:center;gap:8px;}
-    .modal-close{background:transparent;border:none;color:white;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+    .modal-close{background:transparent;border:none;color:white;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:1.2rem;}
     .modal-close:hover{background:rgba(255,255,255,.2);}
     .modal-body{padding:20px;color:#e0e0e0;}
     .modal-body .form-group label{color:#e0e0e0;}
@@ -185,12 +188,12 @@
     .footer{background:var(--primary);color:white;padding:14px 30px;text-align:center;font-size:.8rem;position:fixed;bottom:0;width:100%;}
     .footer p{margin:3px 0;opacity:.9;}
 
-    .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;}
+    .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
     .loading-overlay.active{opacity:1;pointer-events:all;}
-    .spinner{width:40px;height:40px;border:4px solid rgba(255,193,7,.3);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
+    .spinner{width:50px;height:50px;border:4px solid rgba(255,193,7,.3);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
-    .loading-text{color:white;margin-top:14px;font-size:.95rem;}
-    .notif{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);padding:12px 24px;border-radius:8px;font-weight:600;z-index:600;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 5px 20px rgba(0,0,0,.3);font-size:.9rem;}
+    .loading-text{color:white;margin-top:16px;font-size:1rem;}
+    .notif{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);padding:12px 24px;border-radius:8px;font-weight:600;z-index:600;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 5px 20px rgba(0,0,0,.5);font-size:.9rem;}
     .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
     .notif.success{background:#d4edda;color:#155724;}
     .notif.error{background:#f8d7da;color:#721c24;}
@@ -206,7 +209,7 @@
 </head>
 <body>
 
-<!-- ══════════ AUTH SCREEN ══════════ (same as before) -->
+<!-- ══════════ AUTH SCREEN ══════════ -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-banner">
@@ -217,24 +220,24 @@
       </div>
     </div>
     <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchTab('in')">Sign In</div>
-      <div class="auth-tab" onclick="switchTab('up')">Sign Up</div>
+      <div class="auth-tab active" id="tabIn" onclick="switchTab('in')">Sign In</div>
+      <div class="auth-tab" id="tabUp" onclick="switchTab('up')">Sign Up</div>
     </div>
     <div class="auth-body" id="signInBody">
       <div class="auth-error" id="loginErr"></div>
       <form onsubmit="doLogin(event)">
         <div class="form-group">
           <label>Username or Email</label>
-          <input type="text" id="liUser" placeholder="Enter username or email" required>
+          <input type="text" id="liUser" placeholder="Enter username or email" required autocomplete="username">
         </div>
         <div class="form-group">
           <label>Password</label>
           <div class="pw-wrap">
-            <input type="password" id="liPw" placeholder="Enter password" required>
+            <input type="password" id="liPw" placeholder="Enter password" required autocomplete="current-password">
             <button type="button" class="pw-eye" onclick="togglePw('liPw',this)">👁</button>
           </div>
         </div>
-        <button type="submit" class="auth-btn primary">Sign In</button>
+        <button type="submit" class="auth-btn primary" id="loginBtn">Sign In</button>
       </form>
       <div class="admin-note">
         <strong>Admin:</strong> username <code>admin</code> <span class="role-chip admin">Admin</span>
@@ -245,15 +248,31 @@
       <div class="auth-success" id="signupOk"></div>
       <form onsubmit="doSignUp(event)">
         <div class="form-row">
-          <div class="form-group"><label>First Name</label><input type="text" id="suFirst" required></div>
-          <div class="form-group"><label>Last Name</label><input type="text" id="suLast" required></div>
+          <div class="form-group"><label>First Name *</label><input type="text" id="suFirst" required></div>
+          <div class="form-group"><label>Last Name *</label><input type="text" id="suLast" required></div>
         </div>
-        <div class="form-group"><label>Email</label><input type="email" id="suEmail" required></div>
-        <div class="form-group"><label>Username</label><input type="text" id="suUser" required></div>
-        <div class="form-group"><label>Role</label><select id="suRole"><option value="user">User</option><option value="supervisor">Supervisor</option></select></div>
-        <div class="form-group"><label>Password</label><div class="pw-wrap"><input type="password" id="suPw" required oninput="checkStrength(this.value)"><button type="button" class="pw-eye" onclick="togglePw('suPw',this)">👁</button></div><div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div></div>
-        <div class="form-group"><label>Confirm</label><div class="pw-wrap"><input type="password" id="suConfirm" required><button type="button" class="pw-eye" onclick="togglePw('suConfirm',this)">👁</button></div></div>
-        <button type="submit" class="auth-btn green">Create Account</button>
+        <div class="form-group"><label>Email *</label><input type="email" id="suEmail" required></div>
+        <div class="form-group"><label>Username *</label><input type="text" id="suUser" required></div>
+        <div class="form-group"><label>Role</label>
+          <select id="suRole">
+            <option value="user">User</option>
+            <option value="supervisor">Supervisor</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Password *</label>
+          <div class="pw-wrap">
+            <input type="password" id="suPw" required oninput="checkStrength(this.value)">
+            <button type="button" class="pw-eye" onclick="togglePw('suPw',this)">👁</button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        </div>
+        <div class="form-group"><label>Confirm Password *</label>
+          <div class="pw-wrap">
+            <input type="password" id="suConfirm" required>
+            <button type="button" class="pw-eye" onclick="togglePw('suConfirm',this)">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="auth-btn green" id="signupBtn">Create Account</button>
       </form>
     </div>
   </div>
@@ -263,22 +282,35 @@
 <div class="app" id="appContainer">
   <header class="header">
     <div class="header-brand">
-      <div class="logo-box"><img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF-SL"></div>
-      <div class="header-text"><h1>SNT EXPLORER</h1><p>Windows Style Navigation</p></div>
+      <div class="logo-box">
+        <img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF-SL">
+      </div>
+      <div class="header-text">
+        <h1>SNT EXPLORER</h1>
+        <p>Windows Style Navigation</p>
+      </div>
     </div>
     <div class="search-wrap">
       <input type="text" class="search-input" id="searchInput" placeholder="Search folders & files..." oninput="handleSearch(this.value)">
-      <button class="search-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
+      <button class="search-btn" onclick="handleSearch(document.getElementById('searchInput').value)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
     </div>
     <div class="hdr-actions">
       <div class="user-badge" id="userBadge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span id="userDisplay"></span><span class="role-label" id="roleDisplay"></span>
       </div>
-      <button class="btn btn-info" onclick="manualSync()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Sync</button>
-      <button class="btn btn-success" onclick="openFolderModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>New Folder</button>
-      <button class="btn btn-gold" onclick="openAddModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add File</button>
-      <button class="btn btn-outline" onclick="logout()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
+      <button class="btn btn-info" onclick="manualSync()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Sync
+      </button>
+      <button class="btn btn-success" onclick="openFolderModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>New Folder
+      </button>
+      <button class="btn btn-gold" onclick="openAddModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add File
+      </button>
+      <button class="btn btn-outline" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout
+      </button>
     </div>
   </header>
 
@@ -322,14 +354,30 @@
   </footer>
 </div>
 
-<!-- Modals (Folder, Add, Move, etc.) -->
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Folder Modal -->
 <div class="modal-overlay" id="folderModal">
   <div class="modal">
-    <div class="modal-header green"><h2>📁 New Folder</h2><button class="modal-close" onclick="closeFolderModal()">✕</button></div>
+    <div class="modal-header green">
+      <h2>📁 New Folder</h2>
+      <button class="modal-close" onclick="closeFolderModal()">✕</button>
+    </div>
     <div class="modal-body">
-      <div class="form-group"><label>Folder Name *</label><input type="text" id="folderName" placeholder="e.g. Reports 2024"></div>
-      <div class="form-group"><label>Parent Folder</label><select id="parentFolder"><option value="">Root (No parent)</option></select></div>
-      <div class="form-group"><label>Description</label><textarea id="folderDesc" placeholder="Optional description" rows="2"></textarea></div>
+      <div class="form-group">
+        <label>Folder Name *</label>
+        <input type="text" id="folderName" placeholder="e.g. Reports 2024">
+      </div>
+      <div class="form-group">
+        <label>Parent Folder</label>
+        <select id="parentFolder">
+          <option value="">Root (No parent)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="folderDesc" placeholder="Optional description" rows="2"></textarea>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeFolderModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
@@ -338,21 +386,63 @@
   </div>
 </div>
 
+<!-- Add/Edit Item Modal -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <div class="modal-header blue"><h2 id="modalTitle">Add New File</h2><button class="modal-close" onclick="closeAddModal()">✕</button></div>
+    <div class="modal-header blue">
+      <h2 id="modalTitle">Add New File</h2>
+      <button class="modal-close" onclick="closeAddModal()">✕</button>
+    </div>
     <div class="modal-body">
-      <div class="form-group"><label>Title *</label><input type="text" id="itemTitle" placeholder="Enter title"></div>
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="itemTitle" placeholder="Enter title">
+      </div>
       <div class="form-row">
-        <div class="form-group"><label>Section</label><select id="itemSection"><option value="routine-epi">Routine Epi</option><option value="routine-intervention">Intervention</option><option value="routine-stockout">Stockout</option><option value="campaign">Campaign</option><option value="report">Report</option><option value="email">Email</option><option value="meeting">Meeting</option><option value="nextstep">Next Step</option></select></div>
-        <div class="form-group"><label>Date</label><input type="date" id="itemDate"></div>
+        <div class="form-group">
+          <label>Section</label>
+          <select id="itemSection">
+            <option value="routine-epi">Routine Epi</option>
+            <option value="routine-intervention">Intervention</option>
+            <option value="routine-stockout">Stockout</option>
+            <option value="campaign">Campaign</option>
+            <option value="report">Report</option>
+            <option value="email">Email</option>
+            <option value="meeting">Meeting</option>
+            <option value="nextstep">Next Step</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="itemDate">
+        </div>
       </div>
-      <div class="form-group"><label>Folder Location</label><select id="itemFolder"><option value="">Root</option></select></div>
+      <div class="form-group">
+        <label>Folder Location</label>
+        <select id="itemFolder">
+          <option value="">Root</option>
+        </select>
+      </div>
       <div id="nsFields" style="display:none;">
-        <div class="form-row"><div class="form-group"><label>Due Date</label><input type="date" id="itemDue"></div><div class="form-group"><label>Status</label><select id="itemStatus"><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="completed">Completed</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Assignee</label><input type="text" id="itemAssignee"></div><div class="form-group"><label>Email</label><input type="email" id="itemAssigneeEmail"></div></div>
+        <div class="form-row">
+          <div class="form-group"><label>Due Date</label><input type="date" id="itemDue"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="itemStatus">
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Assignee</label><input type="text" id="itemAssignee"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="itemAssigneeEmail"></div>
+        </div>
       </div>
-      <div class="form-group"><label>Description</label><textarea id="itemDesc" rows="3" placeholder="Enter description..."></textarea></div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="itemDesc" rows="3" placeholder="Enter description..."></textarea>
+      </div>
       <div class="form-group">
         <label>Attachment</label>
         <div style="display:flex;gap:10px;margin-bottom:10px;">
@@ -361,7 +451,7 @@
         </div>
         <div id="uploadTab">
           <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt" style="display:none" onchange="onFileSelect(this)">
-          <div class="upload-zone" onclick="document.getElementById('fileInput').click()" style="background:#3a3a3a;border:2px dashed #4a4a4a;border-radius:4px;padding:20px;text-align:center;">
+          <div class="upload-zone" onclick="document.getElementById('fileInput').click()" style="background:#3a3a3a;border:2px dashed #4a4a4a;border-radius:4px;padding:20px;text-align:center;cursor:pointer;">
             <p style="color:#999;">Click to upload or drag & drop</p>
             <p id="fileNameDisplay" style="color:var(--accent);font-size:.8rem;margin-top:8px;"></p>
           </div>
@@ -379,12 +469,19 @@
   </div>
 </div>
 
+<!-- Move Item Modal -->
 <div class="modal-overlay" id="moveModal">
   <div class="modal">
-    <div class="modal-header purple"><h2>Move Item</h2><button class="modal-close" onclick="closeMoveModal()">✕</button></div>
+    <div class="modal-header purple">
+      <h2>Move Item</h2>
+      <button class="modal-close" onclick="closeMoveModal()">✕</button>
+    </div>
     <div class="modal-body">
       <p id="moveItemInfo" style="background:#3a3a3a;padding:10px;border-radius:4px;margin-bottom:15px;"></p>
-      <div class="form-group"><label>Select Destination Folder</label><div class="folder-tree" id="folderTreeMove"></div></div>
+      <div class="form-group">
+        <label>Select Destination Folder</label>
+        <div class="folder-tree" id="folderTreeMove"></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeMoveModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
@@ -393,9 +490,13 @@
   </div>
 </div>
 
+<!-- Delete Item Modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
-    <div class="modal-header red"><h2>Delete</h2><button class="modal-close" onclick="closeDeleteModal()">✕</button></div>
+    <div class="modal-header red">
+      <h2>Delete Item</h2>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
     <div class="modal-body" style="text-align:center;">
       <p style="margin-bottom:15px;">Are you sure you want to delete?</p>
       <p style="background:#3a3a3a;padding:10px;border-radius:4px;font-weight:600;" id="deleteItemTitle"></p>
@@ -408,28 +509,76 @@
   </div>
 </div>
 
-<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Loading...</div></div>
+<!-- Delete Folder Modal -->
+<div class="modal-overlay" id="deleteFolderModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header red">
+      <h2>Delete Folder</h2>
+      <button class="modal-close" onclick="closeDeleteFolderModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="margin-bottom:15px;">Delete folder?</p>
+      <p style="background:#3a3a3a;padding:10px;border-radius:4px;font-weight:600;" id="deleteFolderName"></p>
+      <p style="color:#999;font-size:.8rem;margin-top:10px;">All items will be moved to root.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDeleteFolderModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteFolder()">Delete Folder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header blue">
+      <h2 id="previewTitle">Item Details</h2>
+      <button class="modal-close" onclick="closePreviewModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="previewContainer"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closePreviewModal()" style="background:#3a3a3a;color:#e0e0e0;">Close</button>
+      <button class="btn btn-success" id="previewDownloadBtn" style="display:none;" onclick="downloadPreviewFile()">Download</button>
+      <button class="btn btn-info" id="previewOpenBtn" style="display:none;" onclick="openPreviewLink()">Open Link</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Loading...</div>
+</div>
 <div class="notif" id="notif"></div>
 
 <script>
-// ══════════════════════════════════════════════════
-//  CONFIG - Replace with your GAS URL
-// ══════════════════════════════════════════════════
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
+// ================================================================
+//  CONFIGURATION
+// ================================================================
+const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE'; // REPLACE WITH YOUR DEPLOYED URL
 const ADMIN = { username: 'admin', password: 'admin2', name: 'Administrator', role: 'admin' };
 
-// ══════════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════════
-let currentUser = null, userRole = 'user';
-let folders = [], items = [], currentFolderId = null;
-let folderTree = [], flatFolders = [];
+// ================================================================
+//  GLOBAL STATE
+// ================================================================
+let currentUser = null;
+let userRole = 'user';
+let folders = [];
+let items = [];
+let currentFolderId = null;
+let folderTree = [];
+let flatFolders = [];
 let searchQuery = '';
-let draggedItem = null, dragOverFolder = null;
+let editingItem = null;
+let itemToMove = null;
+let itemToDelete = null;
+let folderToDelete = null;
+let previewItem = null;
 
-// ══════════════════════════════════════════════════
+// ================================================================
 //  ICONS
-// ══════════════════════════════════════════════════
+// ================================================================
 const icons = {
   folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
   folderOpen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V5a2 2 0 0 1 2-2h4l2 3h9a2 2 0 0 1 2 2v1"/><path d="M2 9v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9"/><path d="M2 9h20"/></svg>',
@@ -443,24 +592,29 @@ const icons = {
   nextstep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  comment: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+  comment: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
 };
 
-// ══════════════════════════════════════════════════
-//  AUTH FUNCTIONS (same as before)
-// ══════════════════════════════════════════════════
+// ================================================================
+//  AUTH FUNCTIONS
+// ================================================================
 function switchTab(tab) {
   const isIn = tab === 'in';
-  document.querySelectorAll('.auth-tab').forEach(el => el.classList.toggle('active', el.innerText.includes(isIn ? 'In' : 'Up')));
-  document.getElementById('signInBody').style.display = isIn ? '' : 'none';
-  document.getElementById('signUpBody').style.display = isIn ? 'none' : '';
+  document.getElementById('tabIn').classList.toggle('active', isIn);
+  document.getElementById('tabUp').classList.toggle('active', !isIn);
+  document.getElementById('signInBody').style.display = isIn ? 'block' : 'none';
+  document.getElementById('signUpBody').style.display = isIn ? 'none' : 'block';
 }
+
 function togglePw(id, btn) {
   const el = document.getElementById(id);
   const isText = el.type === 'text';
   el.type = isText ? 'password' : 'text';
   btn.textContent = isText ? '👁' : '🙈';
 }
+
 function checkStrength(pw) {
   const fill = document.getElementById('strengthFill');
   let score = 0;
@@ -468,26 +622,164 @@ function checkStrength(pw) {
   if (/[A-Z]/.test(pw)) score++;
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  fill.style.width = (score / 4 * 100) + '%';
-  fill.style.background = ['#dc3545','#fd7e14','#ffc107','#28a745'][score-1] || 'transparent';
+  const width = (score / 4) * 100;
+  fill.style.width = width + '%';
+  const colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745'];
+  fill.style.background = score > 0 ? colors[score-1] : 'transparent';
 }
 
-// ══════════════════════════════════════════════════
-//  FOLDER TREE FUNCTIONS
-// ══════════════════════════════════════════════════
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('liUser').value.trim().toLowerCase();
+  const password = document.getElementById('liPw').value;
+  const errEl = document.getElementById('loginErr');
+  
+  errEl.classList.remove('show');
+  
+  // Check admin
+  if (username === ADMIN.username && password === ADMIN.password) {
+    currentUser = ADMIN.name;
+    userRole = ADMIN.role;
+    showApp();
+    return;
+  }
+  
+  showLoading('Logging in...');
+  
+  try {
+    const res = await fetch(GAS_URL + '?action=getUsers');
+    const data = await res.json();
+    if (data.success) {
+      const user = data.users.find(u => 
+        (u.username.toLowerCase() === username || u.email.toLowerCase() === username) && 
+        u.password === password
+      );
+      if (user) {
+        currentUser = user.name || user.username;
+        userRole = user.role || 'user';
+        showApp();
+      } else {
+        errEl.textContent = 'Invalid username or password';
+        errEl.classList.add('show');
+      }
+    }
+  } catch (err) {
+    errEl.textContent = 'Login failed - check connection';
+    errEl.classList.add('show');
+  }
+  
+  hideLoading();
+}
+
+async function doSignUp(e) {
+  e.preventDefault();
+  
+  const first = document.getElementById('suFirst').value.trim();
+  const last = document.getElementById('suLast').value.trim();
+  const email = document.getElementById('suEmail').value.trim().toLowerCase();
+  const username = document.getElementById('suUser').value.trim().toLowerCase();
+  const role = document.getElementById('suRole').value;
+  const password = document.getElementById('suPw').value;
+  const confirm = document.getElementById('suConfirm').value;
+  
+  const errEl = document.getElementById('signupErr');
+  const okEl = document.getElementById('signupOk');
+  
+  errEl.classList.remove('show');
+  okEl.classList.remove('show');
+  
+  if (username === ADMIN.username) {
+    errEl.textContent = 'Username reserved';
+    errEl.classList.add('show');
+    return;
+  }
+  
+  if (password.length < 8) {
+    errEl.textContent = 'Password must be 8+ characters';
+    errEl.classList.add('show');
+    return;
+  }
+  
+  if (password !== confirm) {
+    errEl.textContent = 'Passwords do not match';
+    errEl.classList.add('show');
+    return;
+  }
+  
+  showLoading('Creating account...');
+  
+  const user = {
+    username,
+    email,
+    password,
+    name: first + ' ' + last,
+    role,
+    createdAt: new Date().toISOString()
+  };
+  
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'createUser', user })
+    });
+    const data = await res.json();
+    if (data.success) {
+      okEl.textContent = 'Account created! You can now sign in.';
+      okEl.classList.add('show');
+      setTimeout(() => switchTab('in'), 2000);
+    } else {
+      errEl.textContent = data.error || 'Signup failed';
+      errEl.classList.add('show');
+    }
+  } catch (err) {
+    errEl.textContent = 'Network error - try again';
+    errEl.classList.add('show');
+  }
+  
+  hideLoading();
+}
+
+function logout() {
+  currentUser = null;
+  userRole = 'user';
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('appContainer').classList.remove('active');
+}
+
+function showApp() {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appContainer').classList.add('active');
+  document.getElementById('userDisplay').textContent = currentUser;
+  document.getElementById('roleDisplay').textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+  document.getElementById('userBadge').className = 'user-badge ' + userRole;
+  loadAllData();
+}
+
+// ================================================================
+//  DATA LOADING
+// ================================================================
+async function loadAllData() {
+  showLoading('Loading data...');
+  await loadFolderTree();
+  await loadItems();
+  hideLoading();
+}
+
 async function loadFolderTree() {
   try {
     const res = await fetch(GAS_URL + '?action=getFolderTree');
     const data = await res.json();
     if (data.success) {
-      folderTree = data.tree;
+      folderTree = data.tree || [];
       flatFolders = data.flatList || [];
       folders = flatFolders;
       renderSidebarTree();
       populateFolderSelects();
     }
-  } catch (e) {
-    console.log('Using local folders', e);
+  } catch (err) {
+    console.log('Using local folders', err);
+    folders = JSON.parse(localStorage.getItem('sntFolders') || '[]');
     buildLocalTree();
   }
 }
@@ -497,8 +789,11 @@ function buildLocalTree() {
   folders.forEach(f => map[f.id] = { ...f, children: [] });
   folderTree = [];
   folders.forEach(f => {
-    if (f.parentId && map[f.parentId]) map[f.parentId].children.push(map[f.id]);
-    else folderTree.push(map[f.id]);
+    if (f.parentId && map[f.parentId]) {
+      map[f.parentId].children.push(map[f.id]);
+    } else {
+      folderTree.push(map[f.id]);
+    }
   });
   sortTree(folderTree);
   renderSidebarTree();
@@ -509,11 +804,32 @@ function sortTree(nodes) {
   nodes.forEach(n => sortTree(n.children));
 }
 
+async function loadItems() {
+  try {
+    const url = GAS_URL + '?action=getFolderItems&folderId=' + (currentFolderId || '');
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.success) {
+      items = data.items || [];
+      renderItems();
+      renderBreadcrumb();
+    }
+  } catch (err) {
+    items = JSON.parse(localStorage.getItem('sntItems') || '[]')
+      .filter(i => (i.folderId || null) === (currentFolderId || null));
+    renderItems();
+    renderBreadcrumb();
+  }
+}
+
+// ================================================================
+//  RENDERING
+// ================================================================
 function renderSidebarTree() {
   const renderNode = (node, level = 0) => {
-    const selectedClass = node.id === currentFolderId ? 'selected' : '';
+    const selected = node.id === currentFolderId ? 'selected' : '';
     return `
-      <div class="tree-item ${selectedClass}" onclick="navToFolder('${node.id}')" style="padding-left:${level * 20 + 8}px;">
+      <div class="tree-item ${selected}" onclick="navToFolder('${node.id}')" style="padding-left:${level * 20 + 8}px;">
         <span class="tree-arrow">${node.children?.length ? '▼' : '▶'}</span>
         ${icons.folderOpen}
         <span>${node.name}</span>
@@ -521,12 +837,14 @@ function renderSidebarTree() {
       ${node.children?.map(child => renderNode(child, level + 1)).join('') || ''}
     `;
   };
+  
   const html = `
     <div class="tree-item ${!currentFolderId ? 'selected' : ''}" onclick="navToFolder(null)">
       ${icons.folder} <span>Root</span>
     </div>
     ${folderTree.map(node => renderNode(node, 0)).join('')}
   `;
+  
   document.getElementById('folderTreeSidebar').innerHTML = html;
 }
 
@@ -537,51 +855,21 @@ function renderBreadcrumb() {
     path.unshift(current);
     current = flatFolders.find(f => f.id === current.parentId);
   }
+  
   let html = `<span class="path-item" onclick="navToFolder(null)">${icons.folder} Root</span>`;
-  path.forEach((f, i) => {
+  path.forEach(f => {
     html += `<span class="path-sep">›</span>`;
     html += `<span class="path-item" onclick="navToFolder('${f.id}')">${f.name}</span>`;
   });
+  
   document.getElementById('breadcrumb').innerHTML = html;
   document.getElementById('goUpBtn').style.display = currentFolderId ? 'inline-flex' : 'none';
-}
-
-function navToFolder(id) {
-  currentFolderId = id;
-  renderSidebarTree();
-  renderBreadcrumb();
-  loadItems();
-}
-
-function goUp() {
-  if (currentFolderId) {
-    const parent = flatFolders.find(f => f.id === currentFolderId)?.parentId;
-    navToFolder(parent || null);
-  }
-}
-
-// ══════════════════════════════════════════════════
-//  ITEMS FUNCTIONS
-// ══════════════════════════════════════════════════
-async function loadItems() {
-  try {
-    const res = await fetch(GAS_URL + `?action=getFolderItems&folderId=${currentFolderId || ''}`);
-    const data = await res.json();
-    if (data.success) {
-      items = data.items;
-      renderItems();
-    }
-  } catch (e) {
-    items = JSON.parse(localStorage.getItem('sntItems') || '[]')
-      .filter(i => (i.folderId || null) === (currentFolderId || null));
-    renderItems();
-  }
 }
 
 function renderItems() {
   const filtered = searchQuery ? items.filter(i => 
     i.title.toLowerCase().includes(searchQuery) ||
-    i.description?.toLowerCase().includes(searchQuery)
+    (i.description || '').toLowerCase().includes(searchQuery)
   ) : items;
   
   document.getElementById('itemCount').textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
@@ -598,9 +886,11 @@ function renderItems() {
   }
   
   let html = '';
-  filtered.forEach((item, idx) => {
+  filtered.forEach(item => {
     const iconType = item.fileType || item.section || 'file';
     const statusClass = item.status === 'completed' ? 'completed' : '';
+    const itemDate = item.date ? new Date(item.date).toLocaleDateString() : '';
+    
     html += `
       <div class="item-card ${statusClass}" draggable="true" 
            ondragstart="dragStart(event, '${item.id}')" 
@@ -611,7 +901,7 @@ function renderItems() {
           <div class="item-info">
             <div class="item-name">${item.title}</div>
             <div class="item-meta">
-              <span>${item.date ? new Date(item.date).toLocaleDateString() : ''}</span>
+              <span>${itemDate}</span>
               ${item.status ? `<span class="status-badge ${item.status}">${item.status}</span>` : ''}
             </div>
           </div>
@@ -621,7 +911,7 @@ function renderItems() {
         </div>
         <div class="item-footer">
           <button class="item-btn" onclick="event.stopPropagation();openPreview('${item.id}')">${icons.eye} View</button>
-          ${item.fileUrl ? `<button class="item-btn" onclick="event.stopPropagation();downloadFile('${item.fileUrl}')">📥 Download</button>` : ''}
+          ${item.fileUrl ? `<button class="item-btn" onclick="event.stopPropagation();downloadFile('${item.fileUrl}')">${icons.download} Open</button>` : ''}
           ${userRole === 'admin' ? `
             <button class="item-btn" onclick="event.stopPropagation();openMoveModal('${item.id}')">📂 Move</button>
             <button class="item-btn" onclick="event.stopPropagation();openDeleteModal('${item.id}')">🗑️ Delete</button>
@@ -630,12 +920,42 @@ function renderItems() {
       </div>
     `;
   });
+  
   document.getElementById('itemsGrid').innerHTML = html;
 }
 
-// ══════════════════════════════════════════════════
-//  DRAG & DROP (Windows Explorer Style)
-// ══════════════════════════════════════════════════
+// ================================================================
+//  NAVIGATION
+// ================================================================
+function navToFolder(id) {
+  currentFolderId = id;
+  renderSidebarTree();
+  renderBreadcrumb();
+  loadItems();
+}
+
+function goUp() {
+  if (currentFolderId) {
+    const parent = flatFolders.find(f => f.id === currentFolderId)?.parentId;
+    navToFolder(parent || null);
+  }
+}
+
+function refreshCurrentFolder() {
+  loadItems();
+  loadFolderTree();
+}
+
+function handleSearch(q) {
+  searchQuery = q.toLowerCase().trim();
+  renderItems();
+}
+
+// ================================================================
+//  DRAG & DROP
+// ================================================================
+let draggedItem = null;
+
 function dragStart(e, itemId) {
   draggedItem = itemId;
   e.dataTransfer.setData('text/plain', itemId);
@@ -648,28 +968,49 @@ function dragEnd(e) {
 }
 
 document.addEventListener('dragover', e => e.preventDefault());
-document.addEventListener('drop', e => e.preventDefault());
 
 document.addEventListener('drop', async e => {
   e.preventDefault();
   const target = e.target.closest('.folder-card, .tree-item');
   if (target && draggedItem) {
-    const folderId = target.dataset.folderId || target.closest('[data-folder-id]')?.dataset.folderId;
-    if (folderId) {
-      await moveItem(draggedItem, folderId);
+    let folderId = target.dataset.folderId;
+    if (!folderId) {
+      const treeItem = target.closest('[onclick]');
+      if (treeItem) {
+        const match = treeItem.getAttribute('onclick').match(/'([^']*)'/);
+        folderId = match ? match[1] : null;
+        if (folderId === 'null') folderId = null;
+      }
     }
+    await moveItem(draggedItem, folderId);
   }
   draggedItem = null;
 });
 
-// ══════════════════════════════════════════════════
-//  CRUD OPERATIONS
-// ══════════════════════════════════════════════════
+// ================================================================
+//  FOLDER OPERATIONS
+// ================================================================
+function openFolderModal() {
+  populateFolderSelects();
+  document.getElementById('folderName').value = '';
+  document.getElementById('folderDesc').value = '';
+  document.getElementById('parentFolder').value = currentFolderId || '';
+  document.getElementById('folderModal').classList.add('active');
+}
+
+function closeFolderModal() {
+  document.getElementById('folderModal').classList.remove('active');
+}
+
 async function createFolder() {
   const name = document.getElementById('folderName').value.trim();
-  if (!name) return showNotif('Folder name required', 'error');
+  if (!name) {
+    showNotif('Folder name required', 'error');
+    return;
+  }
   
   showLoading('Creating folder...');
+  
   try {
     const res = await fetch(GAS_URL, {
       method: 'POST',
@@ -677,11 +1018,12 @@ async function createFolder() {
       body: JSON.stringify({
         action: 'createFolder',
         name,
-        description: document.getElementById('folderDesc').value,
+        description: document.getElementById('folderDesc').value.trim(),
         parentId: document.getElementById('parentFolder').value || null,
         createdBy: currentUser
       })
     });
+    
     const data = await res.json();
     if (data.success) {
       await loadFolderTree();
@@ -690,120 +1032,437 @@ async function createFolder() {
     } else {
       showNotif(data.error, 'error');
     }
-  } catch (e) {
+  } catch (err) {
     showNotif('Error creating folder', 'error');
   }
+  
   hideLoading();
 }
 
-async function moveItem(itemId, targetFolderId) {
-  showLoading('Moving...');
+function openDeleteFolderModal(id) {
+  const folder = flatFolders.find(f => f.id === id);
+  if (folder) {
+    folderToDelete = folder;
+    document.getElementById('deleteFolderName').textContent = folder.name;
+    document.getElementById('deleteFolderModal').classList.add('active');
+  }
+}
+
+function closeDeleteFolderModal() {
+  document.getElementById('deleteFolderModal').classList.remove('active');
+  folderToDelete = null;
+}
+
+async function confirmDeleteFolder() {
+  if (!folderToDelete) return;
+  
+  showLoading('Deleting folder...');
+  
   try {
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'moveItem', itemId, targetFolderId })
+      body: JSON.stringify({
+        action: 'deleteFolder',
+        folderId: folderToDelete.id
+      })
     });
+    
     const data = await res.json();
     if (data.success) {
-      await loadItems();
-      showNotif('Item moved!', 'success');
+      if (currentFolderId === folderToDelete.id) {
+        navToFolder(null);
+      } else {
+        await loadFolderTree();
+        await loadItems();
+      }
+      closeDeleteFolderModal();
+      showNotif('Folder deleted', 'success');
+    } else {
+      showNotif(data.error, 'error');
     }
-  } catch (e) {
-    showNotif('Error moving item', 'error');
+  } catch (err) {
+    showNotif('Error deleting folder', 'error');
   }
+  
   hideLoading();
 }
 
-async function deleteItem(itemId) {
-  showLoading('Deleting...');
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'deleteItem', itemId })
-    });
-    const data = await res.json();
-    if (data.success) {
-      await loadItems();
-      closeDeleteModal();
-      showNotif('Item deleted!', 'success');
-    }
-  } catch (e) {
-    showNotif('Error deleting item', 'error');
-  }
-  hideLoading();
-}
-
-// ══════════════════════════════════════════════════
-//  MODAL FUNCTIONS
-// ══════════════════════════════════════════════════
-function openFolderModal() {
-  populateFolderSelects();
-  document.getElementById('folderModal').classList.add('active');
-}
-
-function closeFolderModal() {
-  document.getElementById('folderModal').classList.remove('active');
-}
-
+// ================================================================
+//  ITEM OPERATIONS
+// ================================================================
 function openAddModal() {
+  editingItem = null;
+  document.getElementById('modalTitle').textContent = 'Add New File';
+  document.getElementById('itemTitle').value = '';
+  document.getElementById('itemSection').value = 'routine-epi';
+  document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('itemDue').value = '';
+  document.getElementById('itemStatus').value = 'pending';
+  document.getElementById('itemAssignee').value = '';
+  document.getElementById('itemAssigneeEmail').value = '';
+  document.getElementById('itemFolder').value = currentFolderId || '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemFileUrl').value = '';
+  document.getElementById('itemFileType').value = '';
+  document.getElementById('fileNameDisplay').textContent = '';
+  showTab('upload');
+  updateFields();
+  populateFolderSelects();
   document.getElementById('addModal').classList.add('active');
 }
 
 function closeAddModal() {
   document.getElementById('addModal').classList.remove('active');
+  editingItem = null;
 }
 
+function updateFields() {
+  const section = document.getElementById('itemSection').value;
+  const isNextStep = section === 'nextstep';
+  document.getElementById('nsFields').style.display = isNextStep ? 'block' : 'none';
+}
+
+function showTab(tab) {
+  const isUpload = tab === 'upload';
+  document.getElementById('tabUploadBtn').style.background = isUpload ? 'var(--primary)' : '#3a3a3a';
+  document.getElementById('tabUploadBtn').style.color = isUpload ? 'white' : '#e0e0e0';
+  document.getElementById('tabLinkBtn').style.background = isUpload ? '#3a3a3a' : 'var(--primary)';
+  document.getElementById('tabLinkBtn').style.color = isUpload ? '#e0e0e0' : 'white';
+  document.getElementById('uploadTab').style.display = isUpload ? 'block' : 'none';
+  document.getElementById('linkTab').style.display = isUpload ? 'none' : 'block';
+}
+
+function onFileSelect(input) {
+  const file = input.files?.[0];
+  if (file) {
+    document.getElementById('fileNameDisplay').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      window.__selectedFileData = e.target.result;
+      window.__selectedFileName = file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+async function saveItem() {
+  const title = document.getElementById('itemTitle').value.trim();
+  if (!title) {
+    showNotif('Title required', 'error');
+    return;
+  }
+  
+  showLoading('Saving...');
+  
+  const item = {
+    id: editingItem?.id || 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    title,
+    section: document.getElementById('itemSection').value,
+    date: document.getElementById('itemDate').value,
+    dueDate: document.getElementById('itemDue').value || null,
+    status: document.getElementById('itemStatus').value || null,
+    assignee: document.getElementById('itemAssignee').value || null,
+    assigneeEmail: document.getElementById('itemAssigneeEmail').value || null,
+    description: document.getElementById('itemDesc').value,
+    folderId: document.getElementById('itemFolder').value || null,
+    createdBy: editingItem?.createdBy || currentUser,
+    createdAt: editingItem?.createdAt || new Date().toISOString(),
+    comments: editingItem?.comments || []
+  };
+  
+  // Handle file/link
+  if (window.__selectedFileData) {
+    item.fileUrl = window.__selectedFileData;
+    item.fileName = window.__selectedFileName;
+    item.fileType = detectFileType(window.__selectedFileName);
+  } else {
+    const linkUrl = document.getElementById('linkUrl').value.trim();
+    if (linkUrl) {
+      item.fileUrl = linkUrl;
+      item.fileName = document.getElementById('linkName').value.trim() || 'External Link';
+      item.fileType = 'link';
+    }
+  }
+  
+  // Save to backend
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'sync', data: [item] })
+    });
+    await res.json();
+  } catch (err) {
+    console.log('Offline save');
+  }
+  
+  // Update local
+  let allItems = JSON.parse(localStorage.getItem('sntItems') || '[]');
+  if (editingItem) {
+    allItems = allItems.map(i => i.id === item.id ? item : i);
+  } else {
+    allItems.push(item);
+  }
+  localStorage.setItem('sntItems', JSON.stringify(allItems));
+  
+  // Send notification
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'newItem',
+        itemTitle: title,
+        section: item.section,
+        addedBy: currentUser
+      })
+    });
+  } catch (err) {}
+  
+  closeAddModal();
+  await loadItems();
+  showNotif(editingItem ? 'Updated!' : 'Added!', 'success');
+  hideLoading();
+}
+
+function detectFileType(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'pdf';
+  if (['xlsx', 'xls'].includes(ext)) return 'excel';
+  if (['docx', 'doc'].includes(ext)) return 'word';
+  if (['pptx', 'ppt'].includes(ext)) return 'ppt';
+  return 'file';
+}
+
+// ================================================================
+//  MOVE ITEM
+// ================================================================
 function openMoveModal(itemId) {
   const item = items.find(i => i.id === itemId);
   if (item) {
+    itemToMove = item;
     document.getElementById('moveItemInfo').innerHTML = `<strong>Moving:</strong> ${item.title}`;
-    renderFolderTree('folderTreeMove');
+    renderMoveTree();
     document.getElementById('moveModal').classList.add('active');
-    window.__movingItemId = itemId;
   }
 }
 
 function closeMoveModal() {
   document.getElementById('moveModal').classList.remove('active');
-  window.__movingItemId = null;
+  itemToMove = null;
 }
 
-function confirmMove() {
-  const targetId = document.querySelector('#folderTreeMove .selected')?.dataset?.folderId;
-  if (targetId && window.__movingItemId) {
-    moveItem(window.__movingItemId, targetId);
-    closeMoveModal();
+function renderMoveTree() {
+  const el = document.getElementById('folderTreeMove');
+  let html = '<div class="tree-item" onclick="selectMoveFolder(null)">📁 Root</div>';
+  
+  const renderNode = (node, level) => {
+    html += `<div class="tree-item" onclick="selectMoveFolder('${node.id}')" style="padding-left:${level * 20 + 20}px;">📁 ${node.name}</div>`;
+    node.children?.forEach(child => renderNode(child, level + 1));
+  };
+  
+  folderTree.forEach(node => renderNode(node, 0));
+  el.innerHTML = html;
+}
+
+function selectMoveFolder(id) {
+  document.querySelectorAll('#folderTreeMove .tree-item').forEach(el => el.classList.remove('selected'));
+  const target = Array.from(document.querySelectorAll('#folderTreeMove .tree-item')).find(
+    el => el.innerText.includes(id ? flatFolders.find(f => f.id === id)?.name : 'Root')
+  );
+  if (target) target.classList.add('selected');
+  window.__selectedMoveFolder = id;
+}
+
+async function confirmMove() {
+  if (!itemToMove) return;
+  
+  showLoading('Moving...');
+  
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'moveItem',
+        itemId: itemToMove.id,
+        targetFolderId: window.__selectedMoveFolder || null
+      })
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+      closeMoveModal();
+      await loadItems();
+      showNotif('Item moved!', 'success');
+    } else {
+      showNotif(data.error, 'error');
+    }
+  } catch (err) {
+    showNotif('Error moving item', 'error');
   }
+  
+  hideLoading();
 }
 
+// ================================================================
+//  DELETE ITEM
+// ================================================================
 function openDeleteModal(itemId) {
   const item = items.find(i => i.id === itemId);
   if (item) {
+    itemToDelete = item;
     document.getElementById('deleteItemTitle').textContent = item.title;
     document.getElementById('deleteModal').classList.add('active');
-    window.__deletingItemId = itemId;
   }
 }
 
 function closeDeleteModal() {
   document.getElementById('deleteModal').classList.remove('active');
-  window.__deletingItemId = null;
+  itemToDelete = null;
 }
 
-function confirmDelete() {
-  if (window.__deletingItemId) {
-    deleteItem(window.__deletingItemId);
+async function confirmDelete() {
+  if (!itemToDelete) return;
+  
+  showLoading('Deleting...');
+  
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'deleteItem',
+        itemId: itemToDelete.id
+      })
+    });
+    
+    const data = await res.json();
+    if (data.success) {
+      closeDeleteModal();
+      await loadItems();
+      showNotif('Item deleted!', 'success');
+    } else {
+      showNotif(data.error, 'error');
+    }
+  } catch (err) {
+    showNotif('Error deleting item', 'error');
+  }
+  
+  hideLoading();
+}
+
+// ================================================================
+//  PREVIEW
+// ================================================================
+function openPreview(itemId) {
+  const item = items.find(i => i.id === itemId) || 
+               JSON.parse(localStorage.getItem('sntItems') || '[]').find(i => i.id === itemId);
+  
+  if (!item) return;
+  
+  previewItem = item;
+  document.getElementById('previewTitle').textContent = item.title;
+  
+  let html = `
+    <div style="padding:4px 0;">
+      <h4 style="font-size:1.2rem;color:var(--accent);margin-bottom:12px;">${item.title}</h4>
+      <p style="margin-bottom:8px;color:#999;"><strong>Section:</strong> ${item.section}</p>
+      <p style="margin-bottom:8px;color:#999;"><strong>Date:</strong> ${new Date(item.date).toLocaleDateString()}</p>
+  `;
+  
+  if (item.folderId) {
+    const folder = flatFolders.find(f => f.id === item.folderId);
+    if (folder) html += `<p style="margin-bottom:8px;color:#999;"><strong>Folder:</strong> ${folder.name}</p>`;
+  }
+  
+  if (item.dueDate) {
+    html += `<p style="margin-bottom:8px;color:#999;"><strong>Due:</strong> ${new Date(item.dueDate).toLocaleDateString()}</p>`;
+  }
+  
+  if (item.assignee) {
+    html += `<p style="margin-bottom:8px;color:#999;"><strong>Assigned to:</strong> ${item.assignee} ${item.assigneeEmail ? '(' + item.assigneeEmail + ')' : ''}</p>`;
+  }
+  
+  if (item.status) {
+    html += `<p style="margin-bottom:8px;"><strong>Status:</strong> <span class="status-badge ${item.status}">${item.status}</span></p>`;
+  }
+  
+  if (item.description) {
+    html += `<p style="margin-bottom:4px;"><strong>Description:</strong></p>`;
+    html += `<div style="background:#3a3a3a;padding:12px;border-radius:4px;color:#e0e0e0;margin-bottom:12px;">${item.description}</div>`;
+  }
+  
+  if (item.fileUrl) {
+    const isDataUrl = item.fileUrl.startsWith('data:');
+    html += `<p style="margin-bottom:4px;"><strong>Attachment:</strong> ${item.fileName || 'File'}</p>`;
+    html += `<div style="background:#3a3a3a;padding:12px;border-radius:4px;text-align:center;">`;
+    
+    if (isDataUrl) {
+      if (item.fileType === 'pdf') {
+        html += `<iframe src="${item.fileUrl}" style="width:100%;height:300px;border:none;"></iframe>`;
+      } else {
+        html += `<p>File ready for download</p>`;
+      }
+      document.getElementById('previewDownloadBtn').style.display = 'inline-flex';
+      document.getElementById('previewOpenBtn').style.display = 'none';
+    } else {
+      html += `<a href="${item.fileUrl}" target="_blank" style="color:var(--accent);">${item.fileUrl}</a>`;
+      document.getElementById('previewDownloadBtn').style.display = 'none';
+      document.getElementById('previewOpenBtn').style.display = 'inline-flex';
+    }
+    html += `</div>`;
+  } else {
+    document.getElementById('previewDownloadBtn').style.display = 'none';
+    document.getElementById('previewOpenBtn').style.display = 'none';
+  }
+  
+  html += `</div>`;
+  document.getElementById('previewContainer').innerHTML = html;
+  document.getElementById('previewModal').classList.add('active');
+}
+
+function closePreviewModal() {
+  document.getElementById('previewModal').classList.remove('active');
+  previewItem = null;
+}
+
+function downloadPreviewFile() {
+  if (previewItem?.fileUrl) {
+    const a = document.createElement('a');
+    a.href = previewItem.fileUrl;
+    a.download = previewItem.fileName || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 }
 
-// ══════════════════════════════════════════════════
+function openPreviewLink() {
+  if (previewItem?.fileUrl) {
+    window.open(previewItem.fileUrl, '_blank');
+  }
+}
+
+function downloadFile(url) {
+  if (url.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+// ================================================================
 //  UTILITIES
-// ══════════════════════════════════════════════════
+// ================================================================
 function populateFolderSelects() {
-  const selects = ['parentFolder', 'itemFolder'];
-  selects.forEach(id => {
+  ['parentFolder', 'itemFolder'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.innerHTML = '<option value="">Root</option>';
@@ -814,35 +1473,12 @@ function populateFolderSelects() {
   });
 }
 
-function renderFolderTree(containerId) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  let html = '<div class="tree-item" onclick="selectMoveFolder(null)">📁 Root</div>';
-  const renderNode = (node, level) => {
-    html += `<div class="tree-item" onclick="selectMoveFolder('${node.id}')" style="padding-left:${level * 20 + 20}px;">📁 ${node.name}</div>`;
-    node.children?.forEach(child => renderNode(child, level + 1));
-  };
-  folderTree.forEach(node => renderNode(node, 0));
-  el.innerHTML = html;
-}
-
-function selectMoveFolder(id) {
-  document.querySelectorAll('#folderTreeMove .tree-item').forEach(el => el.classList.remove('selected'));
-  if (id) {
-    const target = Array.from(document.querySelectorAll('#folderTreeMove .tree-item')).find(el => el.innerText.includes(flatFolders.find(f => f.id === id)?.name));
-    if (target) target.classList.add('selected');
-  }
-  window.__selectedMoveFolder = id;
-}
-
-function handleSearch(q) {
-  searchQuery = q.toLowerCase().trim();
-  loadItems();
-}
-
-function refreshCurrentFolder() {
-  loadItems();
-  loadFolderTree();
+async function manualSync() {
+  showLoading('Syncing...');
+  await loadFolderTree();
+  await loadItems();
+  hideLoading();
+  showNotif('Sync complete!', 'success');
 }
 
 function showNotif(msg, type) {
@@ -853,7 +1489,7 @@ function showNotif(msg, type) {
 }
 
 function showLoading(text) {
-  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingText').textContent = text || 'Loading...';
   document.getElementById('loadingOverlay').classList.add('active');
 }
 
@@ -861,38 +1497,14 @@ function hideLoading() {
   document.getElementById('loadingOverlay').classList.remove('active');
 }
 
-// ══════════════════════════════════════════════════
-//  SYNC & INIT
-// ══════════════════════════════════════════════════
-async function manualSync() {
-  showLoading('Syncing...');
-  await loadFolderTree();
-  await loadItems();
-  hideLoading();
-  showNotif('Sync complete!', 'success');
-}
-
-function showApp() {
-  document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('appContainer').classList.add('active');
-  document.getElementById('userDisplay').textContent = currentUser;
-  document.getElementById('roleDisplay').textContent = userRole;
-  document.getElementById('userBadge').className = 'user-badge ' + userRole;
-  manualSync();
-}
-
-function logout() {
-  currentUser = null;
-  userRole = 'user';
-  document.getElementById('authScreen').classList.remove('hidden');
-  document.getElementById('appContainer').classList.remove('active');
-}
-
-// ══════════════════════════════════════════════════
-//  EVENT LISTENERS
-// ══════════════════════════════════════════════════
+// ================================================================
+//  INITIALIZATION
+// ================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  // Drag & drop on folder cards
+  // Set today's date as default
+  document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
+  
+  // Drag & drop visual feedback
   document.addEventListener('dragenter', e => {
     const folderCard = e.target.closest('.folder-card');
     if (folderCard) folderCard.classList.add('drag-over');
