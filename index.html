@@ -1,1520 +1,905 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNT Data Assembly - Windows Explorer Style</title>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary:#004080; --primary-dark:#003060; --primary-light:#0060a0;
-      --accent:#ffc107;  --accent-dark:#e0a800;
-      --success:#28a745; --danger:#dc3545; --info:#17a2b8; --purple:#6f42c1;
-      --gray-100:#f0f4f8; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
-      --gray-400:#94a3b8; --gray-600:#475569; --gray-800:#1e293b;
-      --explorer-bg:#202020; --explorer-sidebar:#252525; --explorer-item:#2d2d2d;
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Source Sans Pro',Arial,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNT Data Assembly</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── ROOT ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary:       #004080;
+  --primary-dark:  #003060;
+  --primary-light: #0060a0;
+  --accent:        #ffc107;
+  --accent-dark:   #e0a800;
+  --success:       #28a745;
+  --danger:        #dc3545;
+  --info:          #17a2b8;
+  --purple:        #6f42c1;
+  --warning:       #fd7e14;
+  --bg:            #1a1a2e;
+  --surface:       #202020;
+  --surface-2:     #252525;
+  --surface-3:     #2d2d2d;
+  --surface-4:     #353535;
+  --border:        #3a3a3a;
+  --border-lt:     #4a4a4a;
+  --text:          #e0e0e0;
+  --text-muted:    #999;
+  --text-dim:      #666;
+  --font-head: 'Oswald', sans-serif;
+  --font-body: 'Source Sans Pro', Arial, sans-serif;
+  --radius: 8px;
+  --sh-sm: 0 2px 8px rgba(0,0,0,.3);
+  --sh-md: 0 4px 20px rgba(0,0,0,.4);
+  --sh-lg: 0 8px 40px rgba(0,0,0,.6);
+}
+body { font-family: var(--font-body); background: var(--surface); color: var(--text); line-height: 1.5; min-height: 100vh; }
+button { font-family: var(--font-body); cursor: pointer; }
+input, select, textarea { font-family: var(--font-body); }
 
-    /* ── AUTH SCREEN ─────────────────────────────── */
-    .auth-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
-    .auth-screen.hidden{display:none;}
-    .auth-card{background:white;border-radius:16px;width:100%;max-width:440px;box-shadow:0 30px 90px rgba(0,0,0,0.6);overflow:hidden;}
-    .auth-banner{background:var(--primary);padding:22px 28px;display:flex;align-items:center;gap:14px;}
-    .auth-banner img{width:56px;height:56px;border-radius:8px;border:2px solid rgba(255,255,255,0.3);object-fit:contain;background:white;}
-    .auth-banner-text h1{font-family:'Oswald',sans-serif;font-size:1.15rem;color:white;}
-    .auth-banner-text p{font-size:0.78rem;color:rgba(255,255,255,0.75);}
-    .auth-tabs{display:flex;border-bottom:2px solid var(--gray-200);}
-    .auth-tab{flex:1;padding:13px;text-align:center;font-family:'Oswald',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;color:var(--gray-400);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .25s;letter-spacing:.03em;}
-    .auth-tab:hover{color:var(--primary);}
-    .auth-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
-    .auth-body{padding:22px 28px 26px;}
-    .auth-error{background:#fee2e2;color:#dc2626;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600;display:none;font-size:.87rem;border-left:4px solid #dc2626;}
-    .auth-error.show{display:block;}
-    .auth-success{background:#d4edda;color:#155724;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:600;display:none;font-size:.87rem;border-left:4px solid var(--success);}
-    .auth-success.show{display:block;}
-    .form-group{margin-bottom:14px;}
-    .form-group label{display:block;font-weight:600;margin-bottom:5px;color:var(--gray-800);font-size:.85rem;}
-    .form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;border:2px solid var(--gray-200);border-radius:8px;font-size:.95rem;font-family:inherit;transition:border-color .2s;}
-    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,64,128,.1);}
-    .form-hint{font-size:.74rem;color:var(--gray-400);margin-top:4px;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .pw-wrap{position:relative;}
-    .pw-wrap input{padding-right:42px;}
-    .pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:1rem;line-height:1;}
-    .strength-bar{height:4px;border-radius:4px;margin-top:6px;background:var(--gray-200);overflow:hidden;}
-    .strength-fill{height:100%;border-radius:4px;transition:width .3s,background .3s;width:0;}
-    .auth-btn{width:100%;padding:13px;border:none;border-radius:8px;font-size:1rem;font-weight:700;font-family:'Oswald',sans-serif;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .1s;letter-spacing:.05em;}
-    .auth-btn:active{transform:scale(.99);}
-    .auth-btn.primary{background:var(--primary);color:white;}
-    .auth-btn.primary:hover{background:var(--primary-dark);}
-    .auth-btn.green{background:var(--success);color:white;}
-    .auth-btn.green:hover{background:#218838;}
-    .auth-btn:disabled{opacity:.6;cursor:not-allowed;}
-    .admin-note{margin-top:14px;padding:10px 12px;background:var(--gray-100);border-radius:8px;font-size:.77rem;color:var(--gray-600);}
-    .admin-note strong{color:var(--gray-800);}
-    .role-chip{display:inline-block;padding:1px 7px;border-radius:4px;font-size:.68rem;font-weight:700;margin-left:4px;}
-    .role-chip.admin{background:#fef3c7;color:#92400e;}
+/* ══════════════════════════════════════════════════════
+   AUTH SCREEN
+══════════════════════════════════════════════════════ */
+.auth-screen {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px;
+}
+.auth-screen.hidden { display: none; }
+.auth-card {
+  background: white; border-radius: 16px;
+  width: 100%; max-width: 440px;
+  box-shadow: var(--sh-lg); overflow: hidden;
+}
+.auth-banner {
+  background: var(--primary); padding: 22px 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.auth-banner img {
+  width: 56px; height: 56px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,.3);
+  object-fit: contain; background: white;
+}
+.auth-banner-text h1 { font-family: var(--font-head); font-size: 1.15rem; color: white; }
+.auth-banner-text p  { font-size: .78rem; color: rgba(255,255,255,.75); }
+.auth-tabs { display: flex; border-bottom: 2px solid #e5e7eb; background: white; }
+.auth-tab {
+  flex: 1; padding: 13px; text-align: center;
+  font-family: var(--font-head); font-size: .95rem; font-weight: 600;
+  cursor: pointer; color: #9ca3af; background: none; border: none;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  letter-spacing: .03em; transition: all .2s;
+}
+.auth-tab:hover { color: var(--primary); }
+.auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.auth-body { padding: 22px 28px 26px; background: white; }
 
-    /* ── APP with Windows Explorer style ─────────────────── */
-    .app{display:none;}
-    .app.active{display:block;}
-    .header{background:var(--primary);padding:10px 25px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.3);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:12px;}
-    .header-brand{display:flex;align-items:center;gap:10px;color:white;}
-    .logo-box{background:white;border-radius:4px;padding:3px;}
-    .logo-box img{width:45px;height:45px;border-radius:2px;object-fit:contain;}
-    .header-text h1{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:700;}
-    .header-text p{font-size:.7rem;opacity:.9;}
-    .search-wrap{display:flex;flex:1;max-width:300px;min-width:180px;position:relative;}
-    .search-input{width:100%;padding:8px 38px 8px 14px;border:2px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-family:inherit;font-size:.9rem;outline:none;}
-    .search-input::placeholder{color:rgba(255,255,255,.6);}
-    .search-input:focus{background:rgba(255,255,255,.2);border-color:var(--accent);}
-    .search-btn{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:4px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-    .search-btn svg{width:14px;height:14px;stroke:#000;}
-    .hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-    .user-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:6px;color:white;font-weight:600;font-size:.85rem;}
-    .user-badge.admin{background:rgba(255,193,7,.3);}
-    .user-badge.supervisor{background:rgba(111,66,193,.4);}
-    .user-badge svg{width:16px;height:16px;}
-    .role-label{font-size:.7rem;opacity:.8;text-transform:uppercase;}
-    .btn{padding:8px 14px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Oswald',sans-serif;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;border:2px solid transparent;transition:all .3s;}
-    .btn-outline{background:transparent;border:2px solid rgba(255,255,255,.5);color:white;}
-    .btn-outline:hover{background:rgba(255,255,255,.15);border-color:white;}
-    .btn-gold{background:var(--accent);border-color:var(--accent);color:#000;}
-    .btn-gold:hover{background:var(--accent-dark);}
-    .btn-success{background:var(--success);border-color:var(--success);color:white;}
-    .btn-success:hover{background:#218838;}
-    .btn-info{background:var(--info);border-color:var(--info);color:white;}
-    .btn-info:hover{background:#138496;}
-    .btn-danger{background:var(--danger);border-color:var(--danger);color:white;}
-    .btn-danger:hover{background:#c82333;}
-    .btn-purple{background:var(--purple);border-color:var(--purple);color:white;}
-    .btn-purple:hover{background:#5a32a3;}
+.alert { padding: 10px 14px; border-radius: var(--radius); font-weight: 600; font-size: .87rem; margin-bottom: 14px; display: none; }
+.alert.err { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; display: block; }
+.alert.ok  { background: #d4edda; color: #155724; border-left: 4px solid var(--success); display: block; }
 
-    /* Windows Explorer layout */
-    .explorer-container{display:flex;height:calc(100vh - 140px);margin-top:10px;background:var(--explorer-bg);border-radius:8px;overflow:hidden;border:1px solid #3a3a3a;}
-    .explorer-sidebar{width:280px;background:var(--explorer-sidebar);border-right:1px solid #3a3a3a;display:flex;flex-direction:column;}
-    .sidebar-header{padding:12px;color:white;font-weight:600;border-bottom:1px solid #3a3a3a;display:flex;align-items:center;gap:8px;}
-    .sidebar-header svg{width:16px;height:16px;}
-    .folder-tree{flex:1;overflow-y:auto;padding:8px;}
-    .tree-item{padding:6px 8px;margin:2px 0;border-radius:4px;color:#e0e0e0;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.9rem;transition:all .2s;}
-    .tree-item:hover{background:#3a3a3a;}
-    .tree-item.selected{background:var(--primary);color:white;}
-    .tree-item svg{width:16px;height:16px;opacity:.8;}
-    .tree-children{margin-left:20px;}
-    .tree-arrow{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;opacity:.6;}
-    .explorer-content{flex:1;display:flex;flex-direction:column;background:var(--explorer-bg);}
-    .explorer-toolbar{padding:8px 12px;background:#2a2a2a;border-bottom:1px solid #3a3a3a;display:flex;gap:8px;align-items:center;color:white;}
-    .toolbar-btn{background:transparent;border:none;color:#e0e0e0;padding:6px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:.85rem;}
-    .toolbar-btn:hover{background:#3a3a3a;}
-    .toolbar-btn svg{width:14px;height:14px;}
-    .explorer-path{background:#2a2a2a;padding:8px 12px;border-bottom:1px solid #3a3a3a;color:#e0e0e0;font-size:.9rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-    .path-item{display:flex;align-items:center;gap:3px;cursor:pointer;}
-    .path-item:hover{color:var(--accent);}
-    .path-sep{margin:0 5px;color:#666;}
-    .explorer-view{flex:1;overflow-y:auto;padding:12px;background:var(--explorer-bg);}
-    .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.field { margin-bottom: 14px; }
+.field label { display: block; font-weight: 600; font-size: .85rem; color: #374151; margin-bottom: 5px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 11px 14px;
+  border: 2px solid #e5e7eb; border-radius: var(--radius);
+  font-size: .95rem; transition: border-color .2s; color: #1f2937;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0,64,128,.1);
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 42px; }
+.pw-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #9ca3af; font-size: 1rem; }
+.auth-btn {
+  width: 100%; padding: 13px; border: none; border-radius: var(--radius);
+  font-size: 1rem; font-weight: 700; font-family: var(--font-head);
+  text-transform: uppercase; letter-spacing: .05em; cursor: pointer; transition: all .2s;
+}
+.auth-btn.primary { background: var(--primary); color: white; }
+.auth-btn.primary:hover { background: var(--primary-dark); }
+.auth-btn.green { background: var(--success); color: white; }
+.auth-btn.green:hover { background: #218838; }
+.admin-note {
+  margin-top: 14px; padding: 10px 12px;
+  background: #f3f4f6; border-radius: var(--radius);
+  font-size: .77rem; color: #6b7280;
+}
+.admin-note code { background: #e5e7eb; padding: 1px 5px; border-radius: 4px; }
 
-    /* Folder card (Windows Explorer style) */
-    .folder-card{background:var(--explorer-item);border:1px solid #3a3a3a;border-radius:6px;overflow:hidden;cursor:pointer;transition:all .2s;}
-    .folder-card:hover{background:#353535;border-color:var(--accent);transform:translateY(-1px);}
-    .folder-card-header{padding:12px;display:flex;align-items:center;gap:10px;color:#e0e0e0;}
-    .folder-icon{width:40px;height:40px;background:rgba(255,193,7,.1);border:1px solid rgba(255,193,7,.2);border-radius:6px;display:flex;align-items:center;justify-content:center;}
-    .folder-icon svg{width:22px;height:22px;stroke:#ffc107;}
-    .folder-info{flex:1;min-width:0;}
-    .folder-name{font-weight:600;font-size:.95rem;color:white;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .folder-meta{font-size:.75rem;color:#999;}
-    .folder-actions{display:flex;border-top:1px solid #3a3a3a;}
-    .folder-action{flex:1;padding:8px;background:transparent;border:none;color:#999;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;gap:4px;}
-    .folder-action:hover{background:#404040;color:white;}
+/* ══════════════════════════════════════════════════════
+   APP HEADER
+══════════════════════════════════════════════════════ */
+.app { display: none; }
+.app.active { display: block; }
+.header {
+  background: var(--primary); padding: 10px 24px;
+  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4); flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; color: white; }
+.logo-box { background: white; border-radius: 4px; padding: 3px; }
+.logo-box img { width: 44px; height: 44px; border-radius: 2px; object-fit: contain; }
+.brand-text h1 { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; }
+.brand-text p  { font-size: .7rem; opacity: .85; }
+.search-wrap { display: flex; flex: 1; max-width: 300px; min-width: 180px; position: relative; }
+.search-input {
+  width: 100%; padding: 8px 38px 8px 14px;
+  border: 2px solid rgba(255,255,255,.3); border-radius: var(--radius);
+  background: rgba(255,255,255,.1); color: white; font-size: .9rem; outline: none;
+}
+.search-input::placeholder { color: rgba(255,255,255,.55); }
+.search-input:focus { background: rgba(255,255,255,.2); border-color: var(--accent); }
+.search-btn {
+  position: absolute; right: 3px; top: 50%; transform: translateY(-50%);
+  background: var(--accent); border: none; border-radius: 5px;
+  width: 28px; height: 28px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.search-btn svg { width: 14px; height: 14px; stroke: #000; fill: none; stroke-width: 2.5; }
+.hdr-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.user-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.15); padding: 6px 12px;
+  border-radius: var(--radius); color: white; font-weight: 600; font-size: .85rem;
+}
+.user-badge.admin      { background: rgba(255,193,7,.3); }
+.user-badge.supervisor { background: rgba(111,66,193,.4); }
+.role-label { font-size: .68rem; opacity: .75; text-transform: uppercase; letter-spacing: .04em; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 14px; border-radius: var(--radius);
+  font-size: .8rem; font-weight: 600; font-family: var(--font-head);
+  text-transform: uppercase; letter-spacing: .03em;
+  border: 2px solid transparent; cursor: pointer; transition: all .25s;
+}
+.btn svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
+.btn-outline { background: transparent; border-color: rgba(255,255,255,.5); color: white; }
+.btn-outline:hover { background: rgba(255,255,255,.15); border-color: white; }
+.btn-gold    { background: var(--accent); border-color: var(--accent); color: #000; }
+.btn-gold:hover { background: var(--accent-dark); }
+.btn-success { background: var(--success); border-color: var(--success); color: white; }
+.btn-success:hover { background: #218838; }
+.btn-info    { background: var(--info); border-color: var(--info); color: white; }
+.btn-info:hover { background: #138496; }
+.btn-danger  { background: var(--danger); border-color: var(--danger); color: white; }
+.btn-danger:hover { background: #c82333; }
 
-    /* Item card (Windows Explorer style) */
-    .item-card{background:var(--explorer-item);border:1px solid #3a3a3a;border-radius:6px;overflow:hidden;transition:all .2s;position:relative;}
-    .item-card:hover{border-color:var(--accent);background:#353535;}
-    .item-card.dragging{opacity:.5;}
-    .item-card.completed{opacity:.7;}
-    .item-card-header{padding:12px;display:flex;align-items:center;gap:10px;}
-    .item-type-icon{width:32px;height:32px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;flex-shrink:0;}
-    .item-type-icon.pdf{background:#e53935;}
-    .item-type-icon.excel{background:#43a047;}
-    .item-type-icon.word{background:#1e88e5;}
-    .item-type-icon.ppt{background:#fb8c00;}
-    .item-type-icon.email{background:#5c6bc0;}
-    .item-type-icon.meeting{background:#26a69a;}
-    .item-type-icon.nextstep{background:#ab47bc;}
-    .item-type-icon svg{width:16px;height:16px;}
-    .item-info{flex:1;min-width:0;}
-    .item-name{font-weight:600;font-size:.9rem;color:white;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .item-meta{font-size:.7rem;color:#999;display:flex;gap:8px;}
-    .item-date{color:#bbb;}
-    .status-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:.65rem;font-weight:600;}
-    .status-badge.pending{background:#85640433;color:#ffc107;}
-    .status-badge.in-progress{background:#00408533;color:#1e88e5;}
-    .status-badge.completed{background:#15572433;color:#28a745;}
-    .status-badge.overdue{background:#721c2433;color:#dc3545;}
-    .item-body{padding:0 12px 12px 12px;}
-    .item-desc{font-size:.8rem;color:#999;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-    .item-footer{display:flex;gap:4px;border-top:1px solid #3a3a3a;}
-    .item-btn{flex:1;padding:6px;background:transparent;border:none;color:#999;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;gap:3px;}
-    .item-btn:hover{background:#404040;color:white;}
-    .item-btn svg{width:12px;height:12px;}
+/* ══════════════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════════════ */
+.main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px; }
 
-    .empty-state{text-align:center;padding:40px;color:#999;}
-    .empty-state svg{width:48px;height:48px;stroke:#666;margin-bottom:12px;}
-    .empty-state h3{font-family:'Oswald',sans-serif;font-size:1.1rem;color:#e0e0e0;margin-bottom:8px;}
+/* Stats row */
+.stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-chip {
+  background: var(--surface-3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: .82rem; color: var(--text-muted); cursor: pointer; transition: all .2s;
+}
+.stat-chip:hover  { border-color: var(--accent); }
+.stat-chip.active { border-color: var(--accent); background: var(--surface-4); }
+.stat-chip .si    { font-size: 1.1rem; }
+.stat-chip .sn    { color: var(--text); font-weight: 600; }
+.stat-chip .sc    { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-left: 2px; }
 
-    /* Drag and drop styles */
-    .folder-card.drag-over,.item-card.drag-over{border:2px solid var(--accent);background:#2a2a2a;}
-    .drag-placeholder{height:60px;background:#2a2a2a;border:2px dashed var(--accent);border-radius:6px;margin:8px 0;}
+/* Toolbar */
+.toolbar-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.filter-pill {
+  padding: 7px 14px; border-radius: 20px; font-size: .8rem; font-weight: 600;
+  border: 2px solid var(--border); background: var(--surface-3); color: var(--text-muted);
+  cursor: pointer; transition: all .2s;
+}
+.filter-pill:hover  { border-color: var(--accent); color: var(--accent); }
+.filter-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.sort-sel {
+  margin-left: auto; padding: 7px 10px;
+  border-radius: var(--radius); border: 2px solid var(--border);
+  background: var(--surface-3); color: var(--text); font-size: .82rem;
+}
 
-    /* Modals (dark theme) */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:400;display:none;align-items:center;justify-content:center;padding:15px;overflow-y:auto;}
-    .modal-overlay.active{display:flex;}
-    .modal{background:#2d2d2d;border-radius:8px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid #3a3a3a;}
-    .modal-header{color:white;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0;background:var(--primary);}
-    .modal-header.green{background:var(--success);}
-    .modal-header.purple{background:var(--purple);}
-    .modal-header.red{background:var(--danger);}
-    .modal-header h2{font-family:'Oswald',sans-serif;font-size:1.1rem;display:flex;align-items:center;gap:8px;}
-    .modal-close{background:transparent;border:none;color:white;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:1.2rem;}
-    .modal-close:hover{background:rgba(255,255,255,.2);}
-    .modal-body{padding:20px;color:#e0e0e0;}
-    .modal-body .form-group label{color:#e0e0e0;}
-    .modal-body input,.modal-body select,.modal-body textarea{background:#3a3a3a;border:2px solid #4a4a4a;color:#e0e0e0;}
-    .modal-body input:focus,.modal-body select:focus,.modal-body textarea:focus{border-color:var(--accent);}
-    .modal-footer{padding:14px 20px;border-top:1px solid #3a3a3a;display:flex;gap:8px;justify-content:flex-end;background:#2a2a2a;border-radius:0 0 8px 8px;}
+/* Grid */
+.files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.file-card {
+  background: var(--surface-3); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+  transition: all .2s; display: flex; flex-direction: column;
+}
+.file-card:hover { background: var(--surface-4); border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--sh-md); }
+.fc-head { padding: 13px 14px 10px; display: flex; align-items: flex-start; gap: 10px; }
+.fc-icon {
+  width: 38px; height: 38px; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0; border: 1px solid var(--border-lt);
+}
+.fc-info { flex: 1; min-width: 0; }
+.fc-title { font-weight: 700; font-size: .92rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.fc-meta  { display: flex; gap: 6px; align-items: center; font-size: .72rem; color: var(--text-muted); flex-wrap: wrap; }
+.sect-tag { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: .68rem; font-weight: 700; font-family: var(--font-head); letter-spacing: .02em; text-transform: uppercase; }
+.fc-desc  { padding: 0 14px 10px; font-size: .8rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+.status-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: .66rem; font-weight: 700; }
+.status-badge.pending     { background: rgba(255,193,7,.15);  color: var(--accent); }
+.status-badge.in-progress { background: rgba(23,162,184,.15); color: var(--info); }
+.status-badge.completed   { background: rgba(40,167,69,.15);  color: var(--success); }
+.status-badge.overdue     { background: rgba(220,53,69,.15);  color: var(--danger); }
+.fc-footer { border-top: 1px solid var(--border); display: flex; }
+.fc-btn {
+  flex: 1; padding: 7px 6px; background: transparent; border: none;
+  color: var(--text-muted); font-size: .72rem; font-weight: 600;
+  font-family: var(--font-head); text-transform: uppercase; letter-spacing: .02em;
+  display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .2s;
+}
+.fc-btn:hover       { background: var(--surface-4); color: white; }
+.fc-btn.red:hover   { background: rgba(220,53,69,.15); color: var(--danger); }
+.fc-btn + .fc-btn   { border-left: 1px solid var(--border); }
 
-    .footer{background:var(--primary);color:white;padding:14px 30px;text-align:center;font-size:.8rem;position:fixed;bottom:0;width:100%;}
-    .footer p{margin:3px 0;opacity:.9;}
+.empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state .big-icon { font-size: 3.5rem; margin-bottom: 16px; opacity: .4; }
+.empty-state h3 { font-family: var(--font-head); font-size: 1.2rem; color: var(--text); margin-bottom: 8px; }
 
-    .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
-    .loading-overlay.active{opacity:1;pointer-events:all;}
-    .spinner{width:50px;height:50px;border:4px solid rgba(255,193,7,.3);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    .loading-text{color:white;margin-top:16px;font-size:1rem;}
-    .notif{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);padding:12px 24px;border-radius:8px;font-weight:600;z-index:600;opacity:0;pointer-events:none;transition:all .3s;box-shadow:0 5px 20px rgba(0,0,0,.5);font-size:.9rem;}
-    .notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
-    .notif.success{background:#d4edda;color:#155724;}
-    .notif.error{background:#f8d7da;color:#721c24;}
-    .notif.info{background:#2d2d2d;color:#e0e0e0;border:1px solid var(--accent);}
+/* ══════════════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════════════ */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 400; display: none; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface-3); border-radius: 12px;
+  width: 100%; max-width: 540px; max-height: 90vh;
+  overflow-y: auto; border: 1px solid var(--border);
+  box-shadow: var(--sh-lg); animation: fadeUp .22s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } }
+.modal-head {
+  background: var(--primary); color: white; padding: 15px 20px;
+  display: flex; align-items: center; gap: 10px; border-radius: 12px 12px 0 0;
+}
+.modal-head.green  { background: var(--success); }
+.modal-head.red    { background: var(--danger); }
+.modal-head.purple { background: var(--purple); }
+.modal-head h2 { font-family: var(--font-head); font-size: 1.05rem; font-weight: 600; flex: 1; }
+.modal-x { background: transparent; border: none; color: white; width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; opacity: .8; }
+.modal-x:hover { background: rgba(255,255,255,.2); opacity: 1; }
+.modal-body { padding: 20px; color: var(--text); }
+.modal-body .field label { color: var(--text); }
+.modal-body .field input,
+.modal-body .field select,
+.modal-body .field textarea { background: var(--surface-2); border-color: var(--border-lt); color: var(--text); }
+.modal-body .field input:focus,
+.modal-body .field select:focus,
+.modal-body .field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,193,7,.1); }
+.modal-body textarea { resize: vertical; }
+.modal-foot { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; background: var(--surface-2); border-radius: 0 0 12px 12px; }
+.btn-cancel { background: var(--surface-3); border: 2px solid var(--border); color: var(--text-muted); padding: 8px 14px; border-radius: var(--radius); font-size: .8rem; font-weight: 600; font-family: var(--font-head); text-transform: uppercase; letter-spacing: .03em; }
+.btn-cancel:hover { color: var(--text); border-color: var(--border-lt); }
 
-    @media(max-width:768px){
-      .header{padding:8px 12px;}
-      .explorer-container{flex-direction:column;height:auto;}
-      .explorer-sidebar{width:100%;max-height:200px;}
-      .items-grid{grid-template-columns:1fr;}
-    }
-  </style>
+/* Section chips */
+.sect-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sect-chip {
+  padding: 6px 12px; border-radius: 20px; font-size: .79rem; font-weight: 600;
+  border: 2px solid var(--border); background: var(--surface-2); color: var(--text-muted);
+  cursor: pointer; transition: all .2s; font-family: var(--font-head); letter-spacing: .02em;
+}
+.sect-chip:hover { border-color: var(--accent); color: var(--accent); }
+.sect-chip.on    { color: var(--accent); border-color: var(--accent); background: rgba(255,193,7,.12); }
+
+/* Attach tabs */
+.attach-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.attach-tab {
+  flex: 1; padding: 8px; border-radius: var(--radius);
+  border: 2px solid var(--border); background: var(--surface-2);
+  font-size: .8rem; font-weight: 600; color: var(--text-muted);
+  font-family: var(--font-head); text-transform: uppercase; letter-spacing: .03em; transition: all .2s;
+}
+.attach-tab.on { background: var(--primary); border-color: var(--primary); color: white; }
+.upload-zone {
+  border: 2px dashed var(--border-lt); border-radius: var(--radius);
+  padding: 20px; text-align: center; cursor: pointer;
+  color: var(--text-muted); font-size: .85rem; transition: all .2s;
+}
+.upload-zone:hover    { border-color: var(--accent); color: var(--accent); background: rgba(255,193,7,.05); }
+.upload-zone.has-file { border-color: var(--success); color: var(--success); background: rgba(40,167,69,.05); }
+.link-input {
+  width: 100%; padding: 10px 14px; border-radius: var(--radius);
+  border: 2px solid var(--border-lt); background: var(--surface-2);
+  color: var(--text); font-size: .88rem; margin-bottom: 8px;
+}
+.link-input:focus { outline: none; border-color: var(--accent); }
+
+/* Preview */
+.prev-row { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .87rem; align-items: flex-start; }
+.prev-row:last-child { border-bottom: none; }
+.prev-lbl { color: var(--text-dim); width: 110px; flex-shrink: 0; font-size: .78rem; padding-top: 1px; }
+.prev-val { color: var(--text); font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════
+   TOAST & LOADING
+══════════════════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 20px; border-radius: var(--radius);
+  font-size: .88rem; font-weight: 600; z-index: 999;
+  opacity: 0; pointer-events: none; transform: translateY(8px);
+  transition: all .3s; box-shadow: var(--sh-md); min-width: 200px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: var(--success); color: white; }
+.toast.error   { background: var(--danger); color: white; }
+.toast.info    { background: var(--surface-3); color: var(--text); border: 1px solid var(--accent); }
+.loading-cover {
+  position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.loading-cover.on { opacity: 1; pointer-events: all; }
+.spinner {
+  width: 48px; height: 48px; border: 4px solid rgba(255,193,7,.2);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 1s linear infinite; margin-bottom: 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-cover p { color: var(--text); font-size: .9rem; }
+.footer { position: fixed; bottom: 0; width: 100%; background: var(--primary); color: rgba(255,255,255,.8); text-align: center; padding: 10px; font-size: .76rem; z-index: 10; }
+
+@media (max-width: 620px) {
+  .header { padding: 8px 12px; }
+  .search-wrap { display: none; }
+  .brand-text p { display: none; }
+  .main { padding: 14px 10px 80px; }
+  .files-grid { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+  .sort-sel { margin-left: 0; }
+}
+</style>
 </head>
 <body>
 
-<!-- ══════════ AUTH SCREEN ══════════ -->
+<!-- ══════════ AUTH ══════════ -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-card">
     <div class="auth-banner">
       <img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF-SL">
       <div class="auth-banner-text">
         <h1>SNT Data Assembly</h1>
-        <p>Windows Explorer Style</p>
+        <p>ICF-SL · Integrated Data Management</p>
       </div>
     </div>
     <div class="auth-tabs">
-      <div class="auth-tab active" id="tabIn" onclick="switchTab('in')">Sign In</div>
-      <div class="auth-tab" id="tabUp" onclick="switchTab('up')">Sign Up</div>
+      <button class="auth-tab active" id="tabIn" onclick="switchTab('in')">Sign In</button>
+      <button class="auth-tab"        id="tabUp" onclick="switchTab('up')">Sign Up</button>
     </div>
+    <!-- SIGN IN -->
     <div class="auth-body" id="signInBody">
-      <div class="auth-error" id="loginErr"></div>
+      <div class="alert err" id="loginErr" style="display:none"></div>
       <form onsubmit="doLogin(event)">
-        <div class="form-group">
-          <label>Username or Email</label>
-          <input type="text" id="liUser" placeholder="Enter username or email" required autocomplete="username">
+        <div class="field"><label>Username or Email</label><input type="text" id="liUser" placeholder="Enter username or email" required autocomplete="username"></div>
+        <div class="field"><label>Password</label>
+          <div class="pw-wrap"><input type="password" id="liPw" placeholder="Enter password" required autocomplete="current-password"><button type="button" class="pw-eye" onclick="eye('liPw',this)">👁</button></div>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="liPw" placeholder="Enter password" required autocomplete="current-password">
-            <button type="button" class="pw-eye" onclick="togglePw('liPw',this)">👁</button>
-          </div>
-        </div>
-        <button type="submit" class="auth-btn primary" id="loginBtn">Sign In</button>
+        <button type="submit" class="auth-btn primary">Sign In</button>
       </form>
-      <div class="admin-note">
-        <strong>Admin:</strong> username <code>admin</code> <span class="role-chip admin">Admin</span>
-      </div>
+      <div class="admin-note"><strong>Admin:</strong> username <code>admin</code> · password <code>admin2</code></div>
     </div>
-    <div class="auth-body" id="signUpBody" style="display:none;">
-      <div class="auth-error" id="signupErr"></div>
-      <div class="auth-success" id="signupOk"></div>
+    <!-- SIGN UP -->
+    <div class="auth-body" id="signUpBody" style="display:none">
+      <div class="alert err" id="signupErr" style="display:none"></div>
+      <div class="alert ok"  id="signupOk"  style="display:none"></div>
       <form onsubmit="doSignUp(event)">
-        <div class="form-row">
-          <div class="form-group"><label>First Name *</label><input type="text" id="suFirst" required></div>
-          <div class="form-group"><label>Last Name *</label><input type="text" id="suLast" required></div>
+        <div class="field-row">
+          <div class="field"><label>First Name *</label><input type="text" id="suFirst" required></div>
+          <div class="field"><label>Last Name *</label><input type="text" id="suLast" required></div>
         </div>
-        <div class="form-group"><label>Email *</label><input type="email" id="suEmail" required></div>
-        <div class="form-group"><label>Username *</label><input type="text" id="suUser" required></div>
-        <div class="form-group"><label>Role</label>
-          <select id="suRole">
-            <option value="user">User</option>
-            <option value="supervisor">Supervisor</option>
-          </select>
+        <div class="field"><label>Email *</label><input type="email" id="suEmail" required></div>
+        <div class="field"><label>Username *</label><input type="text" id="suUser" required></div>
+        <div class="field"><label>Role</label>
+          <select id="suRole"><option value="user">User</option><option value="supervisor">Supervisor</option></select>
         </div>
-        <div class="form-group"><label>Password *</label>
-          <div class="pw-wrap">
-            <input type="password" id="suPw" required oninput="checkStrength(this.value)">
-            <button type="button" class="pw-eye" onclick="togglePw('suPw',this)">👁</button>
-          </div>
-          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="field"><label>Password * (8+ characters)</label>
+          <div class="pw-wrap"><input type="password" id="suPw" required><button type="button" class="pw-eye" onclick="eye('suPw',this)">👁</button></div>
         </div>
-        <div class="form-group"><label>Confirm Password *</label>
-          <div class="pw-wrap">
-            <input type="password" id="suConfirm" required>
-            <button type="button" class="pw-eye" onclick="togglePw('suConfirm',this)">👁</button>
-          </div>
+        <div class="field"><label>Confirm Password *</label>
+          <div class="pw-wrap"><input type="password" id="suCf" required><button type="button" class="pw-eye" onclick="eye('suCf',this)">👁</button></div>
         </div>
-        <button type="submit" class="auth-btn green" id="signupBtn">Create Account</button>
+        <button type="submit" class="auth-btn green">Create Account</button>
       </form>
     </div>
   </div>
 </div>
 
-<!-- ══════════ MAIN APP (Windows Explorer Style) ══════════ -->
-<div class="app" id="appContainer">
+<!-- ══════════ APP ══════════ -->
+<div class="app" id="appShell">
   <header class="header">
-    <div class="header-brand">
-      <div class="logo-box">
-        <img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF-SL">
-      </div>
-      <div class="header-text">
-        <h1>SNT EXPLORER</h1>
-        <p>Windows Style Navigation</p>
-      </div>
+    <div class="brand">
+      <div class="logo-box"><img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF"></div>
+      <div class="brand-text"><h1>SNT DATA ASSEMBLY</h1><p>ICF-SL · Integrated Data Management</p></div>
     </div>
     <div class="search-wrap">
-      <input type="text" class="search-input" id="searchInput" placeholder="Search folders & files..." oninput="handleSearch(this.value)">
-      <button class="search-btn" onclick="handleSearch(document.getElementById('searchInput').value)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
+      <input type="text" class="search-input" placeholder="Search files…" oninput="doSearch(this.value)">
+      <button class="search-btn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
     </div>
     <div class="hdr-actions">
       <div class="user-badge" id="userBadge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span id="userDisplay"></span><span class="role-label" id="roleDisplay"></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="userDisplay">–</span><span class="role-label" id="roleDisplay">–</span>
       </div>
-      <button class="btn btn-info" onclick="manualSync()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Sync
-      </button>
-      <button class="btn btn-success" onclick="openFolderModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>New Folder
+      <button class="btn btn-info" onclick="doSync()">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Sync
       </button>
       <button class="btn btn-gold" onclick="openAddModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add File
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add File
       </button>
       <button class="btn btn-outline" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout
       </button>
     </div>
   </header>
 
-  <!-- Windows Explorer Layout -->
-  <div class="explorer-container">
-    <!-- Left Sidebar - Folder Tree -->
-    <div class="explorer-sidebar">
-      <div class="sidebar-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        <span>Folders</span>
-      </div>
-      <div class="folder-tree" id="folderTreeSidebar"></div>
+  <div class="main">
+    <div class="stats-row" id="statsRow"></div>
+    <div class="toolbar-row">
+      <button class="filter-pill active" onclick="setFilter('all',this)">All Files</button>
+      <button class="filter-pill" onclick="setFilter('routine-epi',this)">📊 Routine EPI</button>
+      <button class="filter-pill" onclick="setFilter('intervention',this)">💊 Intervention</button>
+      <button class="filter-pill" onclick="setFilter('stockout',this)">📦 Stockout</button>
+      <button class="filter-pill" onclick="setFilter('campaign',this)">📣 Campaign</button>
+      <button class="filter-pill" onclick="setFilter('report',this)">📄 Report</button>
+      <button class="filter-pill" onclick="setFilter('email',this)">✉️ Email</button>
+      <button class="filter-pill" onclick="setFilter('meeting',this)">🤝 Meeting</button>
+      <button class="filter-pill" onclick="setFilter('nextstep',this)">✅ Next Step</button>
+      <select class="sort-sel" onchange="setSort(this.value)">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="az">Title A–Z</option>
+      </select>
     </div>
-
-    <!-- Right Content Area -->
-    <div class="explorer-content">
-      <!-- Toolbar -->
-      <div class="explorer-toolbar">
-        <button class="toolbar-btn" onclick="goUp()" id="goUpBtn" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Up
-        </button>
-        <button class="toolbar-btn" onclick="refreshCurrentFolder()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Refresh
-        </button>
-        <div style="flex:1;"></div>
-        <span id="itemCount" style="color:#999;font-size:.8rem;"></span>
-      </div>
-
-      <!-- Breadcrumb Path -->
-      <div class="explorer-path" id="breadcrumb"></div>
-
-      <!-- Items Grid (Windows Explorer view) -->
-      <div class="explorer-view" id="explorerView">
-        <div class="items-grid" id="itemsGrid"></div>
-      </div>
-    </div>
+    <div class="files-grid" id="filesGrid"></div>
   </div>
-
-  <footer class="footer">
-    <p><strong>ICF-SL</strong> · Windows Explorer Style File Management</p>
-  </footer>
+  <footer class="footer"><strong>ICF-SL</strong> · SNT Data Assembly System · All rights reserved</footer>
 </div>
 
-<!-- ══════════ MODALS ══════════ -->
-
-<!-- Folder Modal -->
-<div class="modal-overlay" id="folderModal">
+<!-- ══════════ ADD / EDIT MODAL ══════════ -->
+<div class="overlay" id="addOverlay">
   <div class="modal">
-    <div class="modal-header green">
-      <h2>📁 New Folder</h2>
-      <button class="modal-close" onclick="closeFolderModal()">✕</button>
+    <div class="modal-head" id="addHead">
+      <h2 id="addTitle">📁 Add New File</h2>
+      <button class="modal-x" onclick="closeAddModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label>Folder Name *</label>
-        <input type="text" id="folderName" placeholder="e.g. Reports 2024">
-      </div>
-      <div class="form-group">
-        <label>Parent Folder</label>
-        <select id="parentFolder">
-          <option value="">Root (No parent)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea id="folderDesc" placeholder="Optional description" rows="2"></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeFolderModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
-      <button class="btn btn-success" onclick="createFolder()">Create Folder</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add/Edit Item Modal -->
-<div class="modal-overlay" id="addModal">
-  <div class="modal">
-    <div class="modal-header blue">
-      <h2 id="modalTitle">Add New File</h2>
-      <button class="modal-close" onclick="closeAddModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Title *</label>
-        <input type="text" id="itemTitle" placeholder="Enter title">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Section</label>
-          <select id="itemSection">
-            <option value="routine-epi">Routine Epi</option>
-            <option value="routine-intervention">Intervention</option>
-            <option value="routine-stockout">Stockout</option>
-            <option value="campaign">Campaign</option>
-            <option value="report">Report</option>
-            <option value="email">Email</option>
-            <option value="meeting">Meeting</option>
-            <option value="nextstep">Next Step</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="itemDate">
+      <div class="field"><label>Section *</label>
+        <div class="sect-chips">
+          <button type="button" class="sect-chip on" data-v="routine-epi"  onclick="pickSect(this)">📊 Routine EPI</button>
+          <button type="button" class="sect-chip"    data-v="intervention" onclick="pickSect(this)">💊 Intervention</button>
+          <button type="button" class="sect-chip"    data-v="stockout"     onclick="pickSect(this)">📦 Stockout</button>
+          <button type="button" class="sect-chip"    data-v="campaign"     onclick="pickSect(this)">📣 Campaign</button>
+          <button type="button" class="sect-chip"    data-v="report"       onclick="pickSect(this)">📄 Report</button>
+          <button type="button" class="sect-chip"    data-v="email"        onclick="pickSect(this)">✉️ Email</button>
+          <button type="button" class="sect-chip"    data-v="meeting"      onclick="pickSect(this)">🤝 Meeting</button>
+          <button type="button" class="sect-chip"    data-v="nextstep"     onclick="pickSect(this)">✅ Next Step</button>
         </div>
       </div>
-      <div class="form-group">
-        <label>Folder Location</label>
-        <select id="itemFolder">
-          <option value="">Root</option>
-        </select>
+      <div class="field"><label>Title *</label><input type="text" id="fTitle" placeholder="Enter a clear, descriptive title" class="link-input" style="margin:0;font-size:.95rem;"></div>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input type="date" id="fDate" class="link-input" style="margin:0;"></div>
+        <div class="field" id="statusWrap" style="display:none"><label>Status</label>
+          <select id="fStatus" class="link-input" style="margin:0;"><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="completed">Completed</option></select>
+        </div>
       </div>
-      <div id="nsFields" style="display:none;">
-        <div class="form-row">
-          <div class="form-group"><label>Due Date</label><input type="date" id="itemDue"></div>
-          <div class="form-group"><label>Status</label>
-            <select id="itemStatus">
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
+      <div id="nsFields" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Due Date</label><input type="date" id="fDue" class="link-input" style="margin:0;"></div>
+          <div class="field"><label>Assignee</label><input type="text" id="fAssignee" placeholder="Full name" class="link-input" style="margin:0;"></div>
+        </div>
+        <div class="field"><label>Assignee Email</label><input type="email" id="fAssigneeEmail" placeholder="email@example.com" class="link-input" style="margin:0;font-size:.95rem;"></div>
+      </div>
+      <div class="field"><label>Description</label>
+        <textarea id="fDesc" rows="3" placeholder="Optional notes…" style="width:100%;padding:10px 14px;border-radius:var(--radius);border:2px solid var(--border-lt);background:var(--surface-2);color:var(--text);font-size:.9rem;resize:vertical;font-family:var(--font-body);"></textarea>
+      </div>
+      <div class="field"><label>Attachment</label>
+        <div class="attach-tabs">
+          <button type="button" class="attach-tab on" id="tabUp" onclick="switchAttach('up')">⬆ Upload File</button>
+          <button type="button" class="attach-tab"    id="tabLk" onclick="switchAttach('lk')">🔗 Paste Link</button>
+        </div>
+        <div id="upArea">
+          <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt,.csv,.txt" style="display:none" onchange="onFile(this)">
+          <div class="upload-zone" id="upZone" onclick="document.getElementById('fileInput').click()">
+            <div>📎 Click to choose a file, or drag & drop</div>
+            <div id="chosenFile" style="margin-top:8px;font-weight:700;font-size:.82rem;"></div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label>Assignee</label><input type="text" id="itemAssignee"></div>
-          <div class="form-group"><label>Email</label><input type="email" id="itemAssigneeEmail"></div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea id="itemDesc" rows="3" placeholder="Enter description..."></textarea>
-      </div>
-      <div class="form-group">
-        <label>Attachment</label>
-        <div style="display:flex;gap:10px;margin-bottom:10px;">
-          <button type="button" onclick="showTab('upload')" id="tabUploadBtn" style="flex:1;padding:8px;background:var(--primary);color:white;border:none;border-radius:4px;">Upload File</button>
-          <button type="button" onclick="showTab('link')" id="tabLinkBtn" style="flex:1;padding:8px;background:#3a3a3a;color:#e0e0e0;border:none;border-radius:4px;">Paste Link</button>
-        </div>
-        <div id="uploadTab">
-          <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.docx,.doc,.pptx,.ppt" style="display:none" onchange="onFileSelect(this)">
-          <div class="upload-zone" onclick="document.getElementById('fileInput').click()" style="background:#3a3a3a;border:2px dashed #4a4a4a;border-radius:4px;padding:20px;text-align:center;cursor:pointer;">
-            <p style="color:#999;">Click to upload or drag & drop</p>
-            <p id="fileNameDisplay" style="color:var(--accent);font-size:.8rem;margin-top:8px;"></p>
-          </div>
-        </div>
-        <div id="linkTab" style="display:none;">
-          <input type="text" id="linkUrl" placeholder="Paste URL here..." style="width:100%;padding:10px;background:#3a3a3a;border:2px solid #4a4a4a;color:#e0e0e0;border-radius:4px;margin-bottom:8px;">
-          <input type="text" id="linkName" placeholder="Link name (optional)" style="width:100%;padding:10px;background:#3a3a3a;border:2px solid #4a4a4a;color:#e0e0e0;border-radius:4px;">
+        <div id="lkArea" style="display:none">
+          <input type="text"  id="fLinkUrl"  placeholder="https://…"                       class="link-input">
+          <input type="text"  id="fLinkName" placeholder="Display label (optional)"         class="link-input" style="margin-bottom:0;">
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeAddModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
-      <button class="btn btn-gold" onclick="saveItem()">Save</button>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="saveFile()">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Save File
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Move Item Modal -->
-<div class="modal-overlay" id="moveModal">
+<!-- ══════════ PREVIEW ══════════ -->
+<div class="overlay" id="prevOverlay">
   <div class="modal">
-    <div class="modal-header purple">
-      <h2>Move Item</h2>
-      <button class="modal-close" onclick="closeMoveModal()">✕</button>
+    <div class="modal-head" id="prevHead">
+      <h2 id="prevTitle">–</h2>
+      <button class="modal-x" onclick="closePrev()">✕</button>
     </div>
-    <div class="modal-body">
-      <p id="moveItemInfo" style="background:#3a3a3a;padding:10px;border-radius:4px;margin-bottom:15px;"></p>
-      <div class="form-group">
-        <label>Select Destination Folder</label>
-        <div class="folder-tree" id="folderTreeMove"></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeMoveModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
-      <button class="btn btn-purple" onclick="confirmMove()">Move Here</button>
+    <div class="modal-body" id="prevBody"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closePrev()">Close</button>
+      <button class="btn btn-info"    id="prevOpenBtn"  style="display:none" onclick="openAttach()">📎 Open File</button>
+      <button class="btn btn-success" id="prevEditBtn"  style="display:none" onclick="editFromPrev()">✏️ Edit</button>
+      <button class="btn btn-danger"  id="prevDelBtn"   style="display:none" onclick="delFromPrev()">🗑 Delete</button>
     </div>
   </div>
 </div>
 
-<!-- Delete Item Modal -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header red">
-      <h2>Delete Item</h2>
-      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+<!-- ══════════ DELETE CONFIRM ══════════ -->
+<div class="overlay" id="delOverlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head red"><h2>🗑 Confirm Delete</h2><button class="modal-x" onclick="closeDelModal()">✕</button></div>
+    <div class="modal-body" style="text-align:center;padding:28px 20px;">
+      <p style="color:var(--text-muted);margin-bottom:14px;font-size:.9rem;">You are about to permanently delete:</p>
+      <p style="font-size:1rem;font-weight:700;color:white;background:var(--surface-2);padding:10px 14px;border-radius:var(--radius);" id="delName"></p>
+      <p style="color:var(--text-dim);font-size:.78rem;margin-top:12px;">This action cannot be undone.</p>
     </div>
-    <div class="modal-body" style="text-align:center;">
-      <p style="margin-bottom:15px;">Are you sure you want to delete?</p>
-      <p style="background:#3a3a3a;padding:10px;border-radius:4px;font-weight:600;" id="deleteItemTitle"></p>
-      <p style="color:#999;font-size:.8rem;margin-top:10px;">This action cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeDeleteModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeDelModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete Permanently</button>
     </div>
   </div>
 </div>
 
-<!-- Delete Folder Modal -->
-<div class="modal-overlay" id="deleteFolderModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header red">
-      <h2>Delete Folder</h2>
-      <button class="modal-close" onclick="closeDeleteFolderModal()">✕</button>
-    </div>
-    <div class="modal-body" style="text-align:center;">
-      <p style="margin-bottom:15px;">Delete folder?</p>
-      <p style="background:#3a3a3a;padding:10px;border-radius:4px;font-weight:600;" id="deleteFolderName"></p>
-      <p style="color:#999;font-size:.8rem;margin-top:10px;">All items will be moved to root.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeDeleteFolderModal()" style="background:#3a3a3a;color:#e0e0e0;">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDeleteFolder()">Delete Folder</button>
-    </div>
-  </div>
-</div>
-
-<!-- Preview Modal -->
-<div class="modal-overlay" id="previewModal">
-  <div class="modal" style="max-width:700px;">
-    <div class="modal-header blue">
-      <h2 id="previewTitle">Item Details</h2>
-      <button class="modal-close" onclick="closePreviewModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="previewContainer"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closePreviewModal()" style="background:#3a3a3a;color:#e0e0e0;">Close</button>
-      <button class="btn btn-success" id="previewDownloadBtn" style="display:none;" onclick="downloadPreviewFile()">Download</button>
-      <button class="btn btn-info" id="previewOpenBtn" style="display:none;" onclick="openPreviewLink()">Open Link</button>
-    </div>
-  </div>
-</div>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Loading...</div>
-</div>
-<div class="notif" id="notif"></div>
+<!-- ══════════ MISC ══════════ -->
+<div class="loading-cover" id="loading"><div class="spinner"></div><p id="loadingMsg">Loading…</p></div>
+<div class="toast" id="toast"></div>
 
 <script>
 // ================================================================
-//  CONFIGURATION
+//  ⚠️  REPLACE WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
 // ================================================================
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE'; // REPLACE WITH YOUR DEPLOYED URL
-const ADMIN = { username: 'admin', password: 'admin2', name: 'Administrator', role: 'admin' };
+const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
 
-// ================================================================
-//  GLOBAL STATE
-// ================================================================
-let currentUser = null;
-let userRole = 'user';
-let folders = [];
-let items = [];
-let currentFolderId = null;
-let folderTree = [];
-let flatFolders = [];
-let searchQuery = '';
-let editingItem = null;
-let itemToMove = null;
-let itemToDelete = null;
-let folderToDelete = null;
-let previewItem = null;
+const ADMIN = { username:'admin', password:'admin2', name:'Administrator', role:'admin' };
 
-// ================================================================
-//  ICONS
-// ================================================================
-const icons = {
-  folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
-  folderOpen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V5a2 2 0 0 1 2-2h4l2 3h9a2 2 0 0 1 2 2v1"/><path d="M2 9v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9"/><path d="M2 9h20"/></svg>',
-  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-  pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6M9 18h4"/></svg>',
-  excel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M8 2v20M16 2v20M2 8h20M2 16h20"/></svg>',
-  word: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 12h8M8 16h6"/></svg>',
-  ppt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M8 2v20M16 2v20M2 8h20M2 16h20"/><circle cx="12" cy="12" r="2"/></svg>',
-  email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
-  meeting: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  nextstep: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
-  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  comment: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+// ── State ────────────────────────────────────────────────────────
+let me = null, allFiles = [], activeFilter = 'all', sortMode = 'newest', searchQ = '';
+let editingId = null, prevId = null, deleteId = null, _file = null;
+
+const SECT = {
+  'routine-epi':  { icon:'📊', label:'Routine EPI',   bg:'rgba(0,64,128,.25)',   color:'#4da6ff' },
+  'intervention': { icon:'💊', label:'Intervention',  bg:'rgba(40,167,69,.2)',   color:'#28a745' },
+  'stockout':     { icon:'📦', label:'Stockout',      bg:'rgba(253,126,20,.2)',  color:'#fd7e14' },
+  'campaign':     { icon:'📣', label:'Campaign',      bg:'rgba(111,66,193,.2)',  color:'#a370f7' },
+  'report':       { icon:'📄', label:'Report',        bg:'rgba(23,162,184,.2)', color:'#17a2b8' },
+  'email':        { icon:'✉️', label:'Email',          bg:'rgba(147,51,234,.2)', color:'#c084fc' },
+  'meeting':      { icon:'🤝', label:'Meeting',        bg:'rgba(8,145,178,.2)',  color:'#22d3ee' },
+  'nextstep':     { icon:'✅', label:'Next Step',     bg:'rgba(220,53,69,.2)',   color:'#dc3545' },
 };
 
-// ================================================================
-//  AUTH FUNCTIONS
-// ================================================================
-function switchTab(tab) {
-  const isIn = tab === 'in';
-  document.getElementById('tabIn').classList.toggle('active', isIn);
-  document.getElementById('tabUp').classList.toggle('active', !isIn);
-  document.getElementById('signInBody').style.display = isIn ? 'block' : 'none';
-  document.getElementById('signUpBody').style.display = isIn ? 'none' : 'block';
+// ── Auth ─────────────────────────────────────────────────────────
+function switchTab(t) {
+  const isIn = t==='in';
+  document.getElementById('tabIn').classList.toggle('active',isIn);
+  document.getElementById('tabUp').classList.toggle('active',!isIn);
+  document.getElementById('signInBody').style.display = isIn?'block':'none';
+  document.getElementById('signUpBody').style.display = isIn?'none':'block';
 }
-
-function togglePw(id, btn) {
-  const el = document.getElementById(id);
-  const isText = el.type === 'text';
-  el.type = isText ? 'password' : 'text';
-  btn.textContent = isText ? '👁' : '🙈';
+function eye(id,btn) {
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
 }
-
-function checkStrength(pw) {
-  const fill = document.getElementById('strengthFill');
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const width = (score / 4) * 100;
-  fill.style.width = width + '%';
-  const colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745'];
-  fill.style.background = score > 0 ? colors[score-1] : 'transparent';
-}
+function showMsg(id,msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; }
+function hideMsg(id)     { const el=document.getElementById(id); if(el){ el.textContent=''; el.style.display='none'; } }
 
 async function doLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('liUser').value.trim().toLowerCase();
-  const password = document.getElementById('liPw').value;
-  const errEl = document.getElementById('loginErr');
-  
-  errEl.classList.remove('show');
-  
-  // Check admin
-  if (username === ADMIN.username && password === ADMIN.password) {
-    currentUser = ADMIN.name;
-    userRole = ADMIN.role;
-    showApp();
-    return;
-  }
-  
-  showLoading('Logging in...');
-  
+  e.preventDefault(); hideMsg('loginErr');
+  const user=document.getElementById('liUser').value.trim().toLowerCase();
+  const pw=document.getElementById('liPw').value;
+  if (user===ADMIN.username && pw===ADMIN.password) { enterApp(ADMIN.name,ADMIN.role); return; }
+  load('Signing in…');
   try {
-    const res = await fetch(GAS_URL + '?action=getUsers');
-    const data = await res.json();
-    if (data.success) {
-      const user = data.users.find(u => 
-        (u.username.toLowerCase() === username || u.email.toLowerCase() === username) && 
-        u.password === password
-      );
-      if (user) {
-        currentUser = user.name || user.username;
-        userRole = user.role || 'user';
-        showApp();
-      } else {
-        errEl.textContent = 'Invalid username or password';
-        errEl.classList.add('show');
-      }
-    }
-  } catch (err) {
-    errEl.textContent = 'Login failed - check connection';
-    errEl.classList.add('show');
-  }
-  
-  hideLoading();
+    const r=await fetch(GAS_URL+'?action=getUsers');
+    const d=await r.json();
+    if (d.success) {
+      const found=d.users.find(u=>(u.username?.toLowerCase()===user||u.email?.toLowerCase()===user)&&u.password===pw);
+      if (found) enterApp(found.name||found.username,found.role||'user');
+      else showMsg('loginErr','Invalid username or password');
+    } else showMsg('loginErr','Server error: '+(d.error||'unknown'));
+  } catch { showMsg('loginErr','Cannot reach server — please check your GAS_URL.'); }
+  unload();
 }
 
 async function doSignUp(e) {
-  e.preventDefault();
-  
-  const first = document.getElementById('suFirst').value.trim();
-  const last = document.getElementById('suLast').value.trim();
-  const email = document.getElementById('suEmail').value.trim().toLowerCase();
-  const username = document.getElementById('suUser').value.trim().toLowerCase();
-  const role = document.getElementById('suRole').value;
-  const password = document.getElementById('suPw').value;
-  const confirm = document.getElementById('suConfirm').value;
-  
-  const errEl = document.getElementById('signupErr');
-  const okEl = document.getElementById('signupOk');
-  
-  errEl.classList.remove('show');
-  okEl.classList.remove('show');
-  
-  if (username === ADMIN.username) {
-    errEl.textContent = 'Username reserved';
-    errEl.classList.add('show');
-    return;
-  }
-  
-  if (password.length < 8) {
-    errEl.textContent = 'Password must be 8+ characters';
-    errEl.classList.add('show');
-    return;
-  }
-  
-  if (password !== confirm) {
-    errEl.textContent = 'Passwords do not match';
-    errEl.classList.add('show');
-    return;
-  }
-  
-  showLoading('Creating account...');
-  
-  const user = {
-    username,
-    email,
-    password,
-    name: first + ' ' + last,
-    role,
-    createdAt: new Date().toISOString()
-  };
-  
+  e.preventDefault(); hideMsg('signupErr'); hideMsg('signupOk');
+  const first=document.getElementById('suFirst').value.trim();
+  const last=document.getElementById('suLast').value.trim();
+  const email=document.getElementById('suEmail').value.trim().toLowerCase();
+  const user=document.getElementById('suUser').value.trim().toLowerCase();
+  const role=document.getElementById('suRole').value;
+  const pw=document.getElementById('suPw').value;
+  const cf=document.getElementById('suCf').value;
+  if (user===ADMIN.username) { showMsg('signupErr','That username is reserved.'); return; }
+  if (pw.length<8)           { showMsg('signupErr','Password must be 8+ characters.'); return; }
+  if (pw!==cf)               { showMsg('signupErr','Passwords do not match.'); return; }
+  load('Creating account…');
   try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'createUser', user })
-    });
-    const data = await res.json();
-    if (data.success) {
-      okEl.textContent = 'Account created! You can now sign in.';
-      okEl.classList.add('show');
-      setTimeout(() => switchTab('in'), 2000);
-    } else {
-      errEl.textContent = data.error || 'Signup failed';
-      errEl.classList.add('show');
-    }
-  } catch (err) {
-    errEl.textContent = 'Network error - try again';
-    errEl.classList.add('show');
-  }
-  
-  hideLoading();
+    const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'createUser',username:user,email,password:pw,name:first+' '+last,role})});
+    const d=await r.json();
+    if (d.success) { showMsg('signupOk','✅ Account created! You can now sign in.'); setTimeout(()=>switchTab('in'),2200); }
+    else showMsg('signupErr',d.error||'Signup failed');
+  } catch { showMsg('signupErr','Cannot reach server — please check your GAS_URL.'); }
+  unload();
 }
 
-function logout() {
-  currentUser = null;
-  userRole = 'user';
-  document.getElementById('authScreen').classList.remove('hidden');
-  document.getElementById('appContainer').classList.remove('active');
-}
-
-function showApp() {
+function enterApp(name,role) {
+  me={name,role};
   document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('appContainer').classList.add('active');
-  document.getElementById('userDisplay').textContent = currentUser;
-  document.getElementById('roleDisplay').textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
-  document.getElementById('userBadge').className = 'user-badge ' + userRole;
-  loadAllData();
+  document.getElementById('appShell').classList.add('active');
+  document.getElementById('userDisplay').textContent=name;
+  document.getElementById('roleDisplay').textContent=role.charAt(0).toUpperCase()+role.slice(1);
+  document.getElementById('userBadge').className='user-badge '+role;
+  loadFiles();
+}
+function logout() {
+  me=null; allFiles=[];
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('appShell').classList.remove('active');
 }
 
-// ================================================================
-//  DATA LOADING
-// ================================================================
-async function loadAllData() {
-  showLoading('Loading data...');
-  await loadFolderTree();
-  await loadItems();
-  hideLoading();
-}
-
-async function loadFolderTree() {
+// ── Data ─────────────────────────────────────────────────────────
+async function loadFiles() {
+  load('Loading files…');
   try {
-    const res = await fetch(GAS_URL + '?action=getFolderTree');
-    const data = await res.json();
-    if (data.success) {
-      folderTree = data.tree || [];
-      flatFolders = data.flatList || [];
-      folders = flatFolders;
-      renderSidebarTree();
-      populateFolderSelects();
-    }
-  } catch (err) {
-    console.log('Using local folders', err);
-    folders = JSON.parse(localStorage.getItem('sntFolders') || '[]');
-    buildLocalTree();
-  }
+    const r=await fetch(GAS_URL+'?action=getFiles');
+    const d=await r.json();
+    if (d.success) { allFiles=d.files||[]; saveLocal(); }
+    else allFiles=getLocal();
+  } catch { allFiles=getLocal(); }
+  renderAll(); unload();
+}
+function doSync() { toast('Syncing…','info'); loadFiles(); }
+function saveLocal() { try{localStorage.setItem('sntFiles',JSON.stringify(allFiles));}catch{} }
+function getLocal()  { try{return JSON.parse(localStorage.getItem('sntFiles')||'[]');}catch{return[];} }
+
+// ── Render ───────────────────────────────────────────────────────
+function renderAll() { renderStats(); renderGrid(); }
+
+function renderStats() {
+  const c={};
+  Object.keys(SECT).forEach(k=>c[k]=0);
+  allFiles.forEach(f=>{ if(c[f.section]!==undefined) c[f.section]++; });
+  document.getElementById('statsRow').innerHTML=Object.entries(SECT).map(([k,s])=>`
+    <div class="stat-chip ${activeFilter===k?'active':''}" onclick="setFilter('${k}',null)">
+      <span class="si">${s.icon}</span>
+      <span class="sn">${s.label}</span>
+      <span class="sc">${c[k]}</span>
+    </div>`).join('');
 }
 
-function buildLocalTree() {
-  const map = {};
-  folders.forEach(f => map[f.id] = { ...f, children: [] });
-  folderTree = [];
-  folders.forEach(f => {
-    if (f.parentId && map[f.parentId]) {
-      map[f.parentId].children.push(map[f.id]);
-    } else {
-      folderTree.push(map[f.id]);
-    }
-  });
-  sortTree(folderTree);
-  renderSidebarTree();
-}
-
-function sortTree(nodes) {
-  nodes.sort((a, b) => a.name.localeCompare(b.name));
-  nodes.forEach(n => sortTree(n.children));
-}
-
-async function loadItems() {
-  try {
-    const url = GAS_URL + '?action=getFolderItems&folderId=' + (currentFolderId || '');
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.success) {
-      items = data.items || [];
-      renderItems();
-      renderBreadcrumb();
-    }
-  } catch (err) {
-    items = JSON.parse(localStorage.getItem('sntItems') || '[]')
-      .filter(i => (i.folderId || null) === (currentFolderId || null));
-    renderItems();
-    renderBreadcrumb();
-  }
-}
-
-// ================================================================
-//  RENDERING
-// ================================================================
-function renderSidebarTree() {
-  const renderNode = (node, level = 0) => {
-    const selected = node.id === currentFolderId ? 'selected' : '';
-    return `
-      <div class="tree-item ${selected}" onclick="navToFolder('${node.id}')" style="padding-left:${level * 20 + 8}px;">
-        <span class="tree-arrow">${node.children?.length ? '▼' : '▶'}</span>
-        ${icons.folderOpen}
-        <span>${node.name}</span>
-      </div>
-      ${node.children?.map(child => renderNode(child, level + 1)).join('') || ''}
-    `;
-  };
-  
-  const html = `
-    <div class="tree-item ${!currentFolderId ? 'selected' : ''}" onclick="navToFolder(null)">
-      ${icons.folder} <span>Root</span>
-    </div>
-    ${folderTree.map(node => renderNode(node, 0)).join('')}
-  `;
-  
-  document.getElementById('folderTreeSidebar').innerHTML = html;
-}
-
-function renderBreadcrumb() {
-  const path = [];
-  let current = flatFolders.find(f => f.id === currentFolderId);
-  while (current) {
-    path.unshift(current);
-    current = flatFolders.find(f => f.id === current.parentId);
-  }
-  
-  let html = `<span class="path-item" onclick="navToFolder(null)">${icons.folder} Root</span>`;
-  path.forEach(f => {
-    html += `<span class="path-sep">›</span>`;
-    html += `<span class="path-item" onclick="navToFolder('${f.id}')">${f.name}</span>`;
-  });
-  
-  document.getElementById('breadcrumb').innerHTML = html;
-  document.getElementById('goUpBtn').style.display = currentFolderId ? 'inline-flex' : 'none';
-}
-
-function renderItems() {
-  const filtered = searchQuery ? items.filter(i => 
-    i.title.toLowerCase().includes(searchQuery) ||
-    (i.description || '').toLowerCase().includes(searchQuery)
-  ) : items;
-  
-  document.getElementById('itemCount').textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
-  
-  if (!filtered.length) {
-    document.getElementById('itemsGrid').innerHTML = `
-      <div class="empty-state">
-        ${icons.folder}
-        <h3>This folder is empty</h3>
-        <p>Drop files here or click "Add File" to upload</p>
-      </div>
-    `;
+function renderGrid() {
+  let list=[...allFiles];
+  if (activeFilter!=='all') list=list.filter(f=>f.section===activeFilter);
+  if (searchQ) list=list.filter(f=>(f.title+' '+(f.description||'')).toLowerCase().includes(searchQ));
+  if (sortMode==='newest') list.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if (sortMode==='oldest') list.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  if (sortMode==='az')     list.sort((a,b)=>a.title.localeCompare(b.title));
+  const isAdmin=me?.role==='admin';
+  if (!list.length) {
+    document.getElementById('filesGrid').innerHTML=`<div class="empty-state"><div class="big-icon">📂</div><h3>${searchQ||activeFilter!=='all'?'No matching files':'No files yet'}</h3><p>${searchQ||activeFilter!=='all'?'Try a different search or filter.':'Click "+ Add File" to get started.'}</p></div>`;
     return;
   }
-  
-  let html = '';
-  filtered.forEach(item => {
-    const iconType = item.fileType || item.section || 'file';
-    const statusClass = item.status === 'completed' ? 'completed' : '';
-    const itemDate = item.date ? new Date(item.date).toLocaleDateString() : '';
-    
-    html += `
-      <div class="item-card ${statusClass}" draggable="true" 
-           ondragstart="dragStart(event, '${item.id}')" 
-           ondragend="dragEnd(event)"
-           onclick="openPreview('${item.id}')">
-        <div class="item-card-header">
-          <div class="item-type-icon ${iconType}">${icons[iconType] || icons.file}</div>
-          <div class="item-info">
-            <div class="item-name">${item.title}</div>
-            <div class="item-meta">
-              <span>${itemDate}</span>
-              ${item.status ? `<span class="status-badge ${item.status}">${item.status}</span>` : ''}
-            </div>
-          </div>
-        </div>
-        <div class="item-body">
-          <div class="item-desc">${item.description || 'No description'}</div>
-        </div>
-        <div class="item-footer">
-          <button class="item-btn" onclick="event.stopPropagation();openPreview('${item.id}')">${icons.eye} View</button>
-          ${item.fileUrl ? `<button class="item-btn" onclick="event.stopPropagation();downloadFile('${item.fileUrl}')">${icons.download} Open</button>` : ''}
-          ${userRole === 'admin' ? `
-            <button class="item-btn" onclick="event.stopPropagation();openMoveModal('${item.id}')">📂 Move</button>
-            <button class="item-btn" onclick="event.stopPropagation();openDeleteModal('${item.id}')">🗑️ Delete</button>
-          ` : ''}
+  document.getElementById('filesGrid').innerHTML=list.map(f=>{
+    const s=SECT[f.section]||{icon:'📄',label:f.section,bg:'rgba(255,255,255,.08)',color:'#aaa'};
+    const ds=f.date?new Date(f.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'–';
+    const sb=f.status?`<span class="status-badge ${f.status}">${f.status}</span>`:'';
+    return `<div class="file-card" onclick="openPrev('${f.id}')">
+      <div class="fc-head">
+        <div class="fc-icon" style="background:${s.bg};color:${s.color};">${s.icon}</div>
+        <div class="fc-info">
+          <div class="fc-title">${esc(f.title)}</div>
+          <div class="fc-meta"><span>${ds}</span><span class="sect-tag" style="background:${s.bg};color:${s.color};">${s.label}</span>${sb}</div>
         </div>
       </div>
-    `;
-  });
-  
-  document.getElementById('itemsGrid').innerHTML = html;
+      ${f.description?`<div class="fc-desc">${esc(f.description)}</div>`:''}
+      <div class="fc-footer">
+        <button class="fc-btn" onclick="event.stopPropagation();openPrev('${f.id}')">👁 View</button>
+        ${f.fileUrl?`<button class="fc-btn" onclick="event.stopPropagation();openUrl('${f.fileUrl}')">📎 Open</button>`:''}
+        ${isAdmin?`<button class="fc-btn" onclick="event.stopPropagation();startEdit('${f.id}')">✏️ Edit</button>`:''}
+        ${isAdmin?`<button class="fc-btn red" onclick="event.stopPropagation();askDelete('${f.id}')">🗑 Delete</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-// ================================================================
-//  NAVIGATION
-// ================================================================
-function navToFolder(id) {
-  currentFolderId = id;
-  renderSidebarTree();
-  renderBreadcrumb();
-  loadItems();
+function setFilter(v,btn) {
+  activeFilter=v;
+  document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAll();
 }
+function setSort(v) { sortMode=v; renderGrid(); }
+function doSearch(v) { searchQ=v.toLowerCase().trim(); renderGrid(); }
 
-function goUp() {
-  if (currentFolderId) {
-    const parent = flatFolders.find(f => f.id === currentFolderId)?.parentId;
-    navToFolder(parent || null);
-  }
-}
-
-function refreshCurrentFolder() {
-  loadItems();
-  loadFolderTree();
-}
-
-function handleSearch(q) {
-  searchQuery = q.toLowerCase().trim();
-  renderItems();
-}
-
-// ================================================================
-//  DRAG & DROP
-// ================================================================
-let draggedItem = null;
-
-function dragStart(e, itemId) {
-  draggedItem = itemId;
-  e.dataTransfer.setData('text/plain', itemId);
-  e.target.classList.add('dragging');
-}
-
-function dragEnd(e) {
-  e.target.classList.remove('dragging');
-  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-}
-
-document.addEventListener('dragover', e => e.preventDefault());
-
-document.addEventListener('drop', async e => {
-  e.preventDefault();
-  const target = e.target.closest('.folder-card, .tree-item');
-  if (target && draggedItem) {
-    let folderId = target.dataset.folderId;
-    if (!folderId) {
-      const treeItem = target.closest('[onclick]');
-      if (treeItem) {
-        const match = treeItem.getAttribute('onclick').match(/'([^']*)'/);
-        folderId = match ? match[1] : null;
-        if (folderId === 'null') folderId = null;
-      }
-    }
-    await moveItem(draggedItem, folderId);
-  }
-  draggedItem = null;
-});
-
-// ================================================================
-//  FOLDER OPERATIONS
-// ================================================================
-function openFolderModal() {
-  populateFolderSelects();
-  document.getElementById('folderName').value = '';
-  document.getElementById('folderDesc').value = '';
-  document.getElementById('parentFolder').value = currentFolderId || '';
-  document.getElementById('folderModal').classList.add('active');
-}
-
-function closeFolderModal() {
-  document.getElementById('folderModal').classList.remove('active');
-}
-
-async function createFolder() {
-  const name = document.getElementById('folderName').value.trim();
-  if (!name) {
-    showNotif('Folder name required', 'error');
-    return;
-  }
-  
-  showLoading('Creating folder...');
-  
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'createFolder',
-        name,
-        description: document.getElementById('folderDesc').value.trim(),
-        parentId: document.getElementById('parentFolder').value || null,
-        createdBy: currentUser
-      })
-    });
-    
-    const data = await res.json();
-    if (data.success) {
-      await loadFolderTree();
-      closeFolderModal();
-      showNotif('Folder created!', 'success');
-    } else {
-      showNotif(data.error, 'error');
-    }
-  } catch (err) {
-    showNotif('Error creating folder', 'error');
-  }
-  
-  hideLoading();
-}
-
-function openDeleteFolderModal(id) {
-  const folder = flatFolders.find(f => f.id === id);
-  if (folder) {
-    folderToDelete = folder;
-    document.getElementById('deleteFolderName').textContent = folder.name;
-    document.getElementById('deleteFolderModal').classList.add('active');
-  }
-}
-
-function closeDeleteFolderModal() {
-  document.getElementById('deleteFolderModal').classList.remove('active');
-  folderToDelete = null;
-}
-
-async function confirmDeleteFolder() {
-  if (!folderToDelete) return;
-  
-  showLoading('Deleting folder...');
-  
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'deleteFolder',
-        folderId: folderToDelete.id
-      })
-    });
-    
-    const data = await res.json();
-    if (data.success) {
-      if (currentFolderId === folderToDelete.id) {
-        navToFolder(null);
-      } else {
-        await loadFolderTree();
-        await loadItems();
-      }
-      closeDeleteFolderModal();
-      showNotif('Folder deleted', 'success');
-    } else {
-      showNotif(data.error, 'error');
-    }
-  } catch (err) {
-    showNotif('Error deleting folder', 'error');
-  }
-  
-  hideLoading();
-}
-
-// ================================================================
-//  ITEM OPERATIONS
-// ================================================================
+// ── Add/Edit ─────────────────────────────────────────────────────
 function openAddModal() {
-  editingItem = null;
-  document.getElementById('modalTitle').textContent = 'Add New File';
-  document.getElementById('itemTitle').value = '';
-  document.getElementById('itemSection').value = 'routine-epi';
-  document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('itemDue').value = '';
-  document.getElementById('itemStatus').value = 'pending';
-  document.getElementById('itemAssignee').value = '';
-  document.getElementById('itemAssigneeEmail').value = '';
-  document.getElementById('itemFolder').value = currentFolderId || '';
-  document.getElementById('itemDesc').value = '';
-  document.getElementById('itemFileUrl').value = '';
-  document.getElementById('itemFileType').value = '';
-  document.getElementById('fileNameDisplay').textContent = '';
-  showTab('upload');
-  updateFields();
-  populateFolderSelects();
-  document.getElementById('addModal').classList.add('active');
+  editingId=null; _file=null;
+  document.getElementById('addTitle').textContent='📁 Add New File';
+  ['fTitle','fDesc','fLinkUrl','fLinkName','fAssignee','fAssigneeEmail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDate').value=today();
+  document.getElementById('fDue').value='';
+  document.getElementById('fStatus').value='pending';
+  document.getElementById('chosenFile').textContent='';
+  document.getElementById('upZone').classList.remove('has-file');
+  pickSect(document.querySelector('.sect-chip[data-v="routine-epi"]'));
+  switchAttach('up');
+  document.getElementById('addOverlay').classList.add('open');
+}
+function closeAddModal() { document.getElementById('addOverlay').classList.remove('open'); editingId=null; }
+
+function startEdit(id) {
+  const f=allFiles.find(x=>x.id===id); if(!f) return;
+  editingId=id; _file=null;
+  document.getElementById('addTitle').textContent='✏️ Edit File';
+  document.getElementById('fTitle').value=f.title||'';
+  document.getElementById('fDate').value=f.date||today();
+  document.getElementById('fDue').value=f.dueDate||'';
+  document.getElementById('fStatus').value=f.status||'pending';
+  document.getElementById('fAssignee').value=f.assignee||'';
+  document.getElementById('fAssigneeEmail').value=f.assigneeEmail||'';
+  document.getElementById('fDesc').value=f.description||'';
+  document.getElementById('fLinkUrl').value=f.fileType==='link'?f.fileUrl||'':'';
+  document.getElementById('fLinkName').value=f.fileType==='link'?f.fileName||'':'';
+  document.getElementById('chosenFile').textContent='';
+  document.getElementById('upZone').classList.remove('has-file');
+  const chip=document.querySelector(`.sect-chip[data-v="${f.section}"]`);
+  if (chip) pickSect(chip);
+  switchAttach(f.fileType==='link'?'lk':'up');
+  closePrev();
+  document.getElementById('addOverlay').classList.add('open');
+}
+function editFromPrev() { if(prevId) startEdit(prevId); }
+
+function pickSect(btn) {
+  document.querySelectorAll('.sect-chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const v=btn.dataset.v, isNs=v==='nextstep';
+  document.getElementById('nsFields').style.display=isNs?'block':'none';
+  document.getElementById('statusWrap').style.display=isNs?'block':'none';
+}
+function switchAttach(t) {
+  const up=t==='up';
+  document.getElementById('tabUp').classList.toggle('on',up);
+  document.getElementById('tabLk').classList.toggle('on',!up);
+  document.getElementById('upArea').style.display=up?'block':'none';
+  document.getElementById('lkArea').style.display=up?'none':'block';
+}
+function onFile(input) {
+  const file=input.files?.[0]; if(!file) return;
+  document.getElementById('chosenFile').textContent='✅ '+file.name;
+  document.getElementById('upZone').classList.add('has-file');
+  const reader=new FileReader();
+  reader.onload=e=>{ _file={base64:e.target.result,name:file.name,mime:file.type}; };
+  reader.readAsDataURL(file);
 }
 
-function closeAddModal() {
-  document.getElementById('addModal').classList.remove('active');
-  editingItem = null;
-}
-
-function updateFields() {
-  const section = document.getElementById('itemSection').value;
-  const isNextStep = section === 'nextstep';
-  document.getElementById('nsFields').style.display = isNextStep ? 'block' : 'none';
-}
-
-function showTab(tab) {
-  const isUpload = tab === 'upload';
-  document.getElementById('tabUploadBtn').style.background = isUpload ? 'var(--primary)' : '#3a3a3a';
-  document.getElementById('tabUploadBtn').style.color = isUpload ? 'white' : '#e0e0e0';
-  document.getElementById('tabLinkBtn').style.background = isUpload ? '#3a3a3a' : 'var(--primary)';
-  document.getElementById('tabLinkBtn').style.color = isUpload ? '#e0e0e0' : 'white';
-  document.getElementById('uploadTab').style.display = isUpload ? 'block' : 'none';
-  document.getElementById('linkTab').style.display = isUpload ? 'none' : 'block';
-}
-
-function onFileSelect(input) {
-  const file = input.files?.[0];
-  if (file) {
-    document.getElementById('fileNameDisplay').textContent = file.name;
-    const reader = new FileReader();
-    reader.onload = e => {
-      window.__selectedFileData = e.target.result;
-      window.__selectedFileName = file.name;
-    };
-    reader.readAsDataURL(file);
+async function saveFile() {
+  const title=document.getElementById('fTitle').value.trim();
+  if (!title) { toast('Title is required!','error'); return; }
+  const chip=document.querySelector('.sect-chip.on');
+  const section=chip?.dataset?.v||'routine-epi';
+  const isLk=document.getElementById('lkArea').style.display!=='none';
+  const linkUrl=isLk?document.getElementById('fLinkUrl').value.trim():'';
+  load('Saving…');
+  let fileUrl='',fileName='',fileType='',driveFileId='';
+  if (_file) {
+    try {
+      const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'uploadFile',base64Data:_file.base64,fileName:_file.name,mimeType:_file.mime})});
+      const d=await r.json();
+      if (d.success) { fileUrl=d.viewUrl; fileName=_file.name; driveFileId=d.driveFileId; fileType=detectType(_file.name); }
+      else toast('File upload failed: '+d.error,'error');
+    } catch { toast('Upload failed — metadata saved only.','error'); }
+  } else if (linkUrl) {
+    fileUrl=linkUrl; fileName=document.getElementById('fLinkName').value.trim()||linkUrl; fileType='link';
+  } else if (editingId) {
+    const ex=allFiles.find(f=>f.id===editingId);
+    if (ex) { fileUrl=ex.fileUrl||''; fileName=ex.fileName||''; fileType=ex.fileType||''; driveFileId=ex.driveFileId||''; }
   }
-}
-
-async function saveItem() {
-  const title = document.getElementById('itemTitle').value.trim();
-  if (!title) {
-    showNotif('Title required', 'error');
-    return;
-  }
-  
-  showLoading('Saving...');
-  
-  const item = {
-    id: editingItem?.id || 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-    title,
-    section: document.getElementById('itemSection').value,
-    date: document.getElementById('itemDate').value,
-    dueDate: document.getElementById('itemDue').value || null,
-    status: document.getElementById('itemStatus').value || null,
-    assignee: document.getElementById('itemAssignee').value || null,
-    assigneeEmail: document.getElementById('itemAssigneeEmail').value || null,
-    description: document.getElementById('itemDesc').value,
-    folderId: document.getElementById('itemFolder').value || null,
-    createdBy: editingItem?.createdBy || currentUser,
-    createdAt: editingItem?.createdAt || new Date().toISOString(),
-    comments: editingItem?.comments || []
+  const now=new Date().toISOString();
+  const ex=editingId?allFiles.find(f=>f.id===editingId):null;
+  const file={
+    id:editingId||('file_'+Date.now()), title, section,
+    date:document.getElementById('fDate').value||today(),
+    dueDate:document.getElementById('fDue').value||'',
+    status:document.getElementById('fStatus').value||'',
+    assignee:document.getElementById('fAssignee').value.trim(),
+    assigneeEmail:document.getElementById('fAssigneeEmail').value.trim(),
+    description:document.getElementById('fDesc').value.trim(),
+    fileUrl,fileName,fileType,driveFileId,
+    createdBy:ex?ex.createdBy:me.name,
+    createdAt:ex?ex.createdAt:now,
   };
-  
-  // Handle file/link
-  if (window.__selectedFileData) {
-    item.fileUrl = window.__selectedFileData;
-    item.fileName = window.__selectedFileName;
-    item.fileType = detectFileType(window.__selectedFileName);
-  } else {
-    const linkUrl = document.getElementById('linkUrl').value.trim();
-    if (linkUrl) {
-      item.fileUrl = linkUrl;
-      item.fileName = document.getElementById('linkName').value.trim() || 'External Link';
-      item.fileType = 'link';
-    }
-  }
-  
-  // Save to backend
   try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sync', data: [item] })
-    });
-    await res.json();
-  } catch (err) {
-    console.log('Offline save');
-  }
-  
-  // Update local
-  let allItems = JSON.parse(localStorage.getItem('sntItems') || '[]');
-  if (editingItem) {
-    allItems = allItems.map(i => i.id === item.id ? item : i);
-  } else {
-    allItems.push(item);
-  }
-  localStorage.setItem('sntItems', JSON.stringify(allItems));
-  
-  // Send notification
-  try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'newItem',
-        itemTitle: title,
-        section: item.section,
-        addedBy: currentUser
-      })
-    });
-  } catch (err) {}
-  
-  closeAddModal();
-  await loadItems();
-  showNotif(editingItem ? 'Updated!' : 'Added!', 'success');
-  hideLoading();
+    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'saveFile',file})});
+  } catch {}
+  allFiles=editingId?allFiles.map(f=>f.id===editingId?file:f):[file,...allFiles];
+  saveLocal(); closeAddModal(); renderAll();
+  toast(editingId?'✅ File updated!':'✅ File added!','success'); unload();
 }
 
-function detectFileType(filename) {
-  const ext = filename.split('.').pop().toLowerCase();
-  if (ext === 'pdf') return 'pdf';
-  if (['xlsx', 'xls'].includes(ext)) return 'excel';
-  if (['docx', 'doc'].includes(ext)) return 'word';
-  if (['pptx', 'ppt'].includes(ext)) return 'ppt';
+// ── Preview ──────────────────────────────────────────────────────
+function openPrev(id) {
+  const f=allFiles.find(x=>x.id===id); if(!f) return;
+  prevId=id;
+  const s=SECT[f.section]||{icon:'📄',label:f.section,color:'#aaa'};
+  document.getElementById('prevTitle').textContent=s.icon+' '+f.title;
+  const isAdmin=me?.role==='admin';
+  document.getElementById('prevEditBtn').style.display=isAdmin?'inline-flex':'none';
+  document.getElementById('prevDelBtn').style.display=isAdmin?'inline-flex':'none';
+  document.getElementById('prevOpenBtn').style.display=f.fileUrl?'inline-flex':'none';
+  const ds=f.date?new Date(f.date).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}):'–';
+  const rows=[
+    ['Section',`<span style="font-weight:700;color:${s.color}">${s.icon} ${s.label}</span>`],
+    ['Date',ds],
+    f.status?['Status',`<span class="status-badge ${f.status}">${f.status}</span>`]:null,
+    f.dueDate?['Due Date',new Date(f.dueDate).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})]:null,
+    f.assignee?['Assignee',esc(f.assignee)+(f.assigneeEmail?` · <a href="mailto:${f.assigneeEmail}" style="color:var(--accent);">${f.assigneeEmail}</a>`:'')]:null,
+    f.description?['Description',`<div style="background:var(--surface-2);padding:10px 12px;border-radius:var(--radius);font-size:.84rem;color:var(--text);">${esc(f.description)}</div>`]:null,
+    f.fileName?['Attachment',`📎 <a href="${f.fileUrl}" target="_blank" style="color:var(--accent);">${esc(f.fileName)}</a>`]:null,
+    ['Added by',esc(f.createdBy||'–')],
+  ].filter(Boolean);
+  document.getElementById('prevBody').innerHTML=rows.map(([l,v])=>`<div class="prev-row"><span class="prev-lbl">${l}</span><span class="prev-val">${v}</span></div>`).join('');
+  document.getElementById('prevOverlay').classList.add('open');
+}
+function closePrev()  { document.getElementById('prevOverlay').classList.remove('open'); prevId=null; }
+function openAttach() { const f=allFiles.find(x=>x.id===prevId); if(f?.fileUrl) window.open(f.fileUrl,'_blank'); }
+
+// ── Delete ───────────────────────────────────────────────────────
+function askDelete(id) { const f=allFiles.find(x=>x.id===id); if(!f) return; deleteId=id; document.getElementById('delName').textContent=f.title; document.getElementById('delOverlay').classList.add('open'); }
+function delFromPrev()   { if(prevId){closePrev();askDelete(prevId);} }
+function closeDelModal() { document.getElementById('delOverlay').classList.remove('open'); deleteId=null; }
+async function confirmDelete() {
+  if(!deleteId) return; load('Deleting…');
+  try { await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'deleteFile',fileId:deleteId})}); } catch {}
+  allFiles=allFiles.filter(f=>f.id!==deleteId);
+  saveLocal(); closeDelModal(); renderAll(); toast('File deleted.','info'); unload();
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
+function detectType(n) {
+  const e=(n.split('.').pop()||'').toLowerCase();
+  if(e==='pdf') return 'pdf';
+  if(['xlsx','xls','csv'].includes(e)) return 'excel';
+  if(['docx','doc'].includes(e)) return 'word';
+  if(['pptx','ppt'].includes(e)) return 'ppt';
   return 'file';
 }
-
-// ================================================================
-//  MOVE ITEM
-// ================================================================
-function openMoveModal(itemId) {
-  const item = items.find(i => i.id === itemId);
-  if (item) {
-    itemToMove = item;
-    document.getElementById('moveItemInfo').innerHTML = `<strong>Moving:</strong> ${item.title}`;
-    renderMoveTree();
-    document.getElementById('moveModal').classList.add('active');
-  }
+function today()   { return new Date().toISOString().split('T')[0]; }
+function esc(s)    { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function openUrl(u){ window.open(u,'_blank'); }
+function load(msg) { document.getElementById('loadingMsg').textContent=msg||'Loading…'; document.getElementById('loading').classList.add('on'); }
+function unload()  { document.getElementById('loading').classList.remove('on'); }
+function toast(msg,type='info') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast '+type+' show';
+  setTimeout(()=>el.classList.remove('show'),3500);
 }
-
-function closeMoveModal() {
-  document.getElementById('moveModal').classList.remove('active');
-  itemToMove = null;
-}
-
-function renderMoveTree() {
-  const el = document.getElementById('folderTreeMove');
-  let html = '<div class="tree-item" onclick="selectMoveFolder(null)">📁 Root</div>';
-  
-  const renderNode = (node, level) => {
-    html += `<div class="tree-item" onclick="selectMoveFolder('${node.id}')" style="padding-left:${level * 20 + 20}px;">📁 ${node.name}</div>`;
-    node.children?.forEach(child => renderNode(child, level + 1));
-  };
-  
-  folderTree.forEach(node => renderNode(node, 0));
-  el.innerHTML = html;
-}
-
-function selectMoveFolder(id) {
-  document.querySelectorAll('#folderTreeMove .tree-item').forEach(el => el.classList.remove('selected'));
-  const target = Array.from(document.querySelectorAll('#folderTreeMove .tree-item')).find(
-    el => el.innerText.includes(id ? flatFolders.find(f => f.id === id)?.name : 'Root')
-  );
-  if (target) target.classList.add('selected');
-  window.__selectedMoveFolder = id;
-}
-
-async function confirmMove() {
-  if (!itemToMove) return;
-  
-  showLoading('Moving...');
-  
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'moveItem',
-        itemId: itemToMove.id,
-        targetFolderId: window.__selectedMoveFolder || null
-      })
-    });
-    
-    const data = await res.json();
-    if (data.success) {
-      closeMoveModal();
-      await loadItems();
-      showNotif('Item moved!', 'success');
-    } else {
-      showNotif(data.error, 'error');
-    }
-  } catch (err) {
-    showNotif('Error moving item', 'error');
-  }
-  
-  hideLoading();
-}
-
-// ================================================================
-//  DELETE ITEM
-// ================================================================
-function openDeleteModal(itemId) {
-  const item = items.find(i => i.id === itemId);
-  if (item) {
-    itemToDelete = item;
-    document.getElementById('deleteItemTitle').textContent = item.title;
-    document.getElementById('deleteModal').classList.add('active');
-  }
-}
-
-function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.remove('active');
-  itemToDelete = null;
-}
-
-async function confirmDelete() {
-  if (!itemToDelete) return;
-  
-  showLoading('Deleting...');
-  
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'deleteItem',
-        itemId: itemToDelete.id
-      })
-    });
-    
-    const data = await res.json();
-    if (data.success) {
-      closeDeleteModal();
-      await loadItems();
-      showNotif('Item deleted!', 'success');
-    } else {
-      showNotif(data.error, 'error');
-    }
-  } catch (err) {
-    showNotif('Error deleting item', 'error');
-  }
-  
-  hideLoading();
-}
-
-// ================================================================
-//  PREVIEW
-// ================================================================
-function openPreview(itemId) {
-  const item = items.find(i => i.id === itemId) || 
-               JSON.parse(localStorage.getItem('sntItems') || '[]').find(i => i.id === itemId);
-  
-  if (!item) return;
-  
-  previewItem = item;
-  document.getElementById('previewTitle').textContent = item.title;
-  
-  let html = `
-    <div style="padding:4px 0;">
-      <h4 style="font-size:1.2rem;color:var(--accent);margin-bottom:12px;">${item.title}</h4>
-      <p style="margin-bottom:8px;color:#999;"><strong>Section:</strong> ${item.section}</p>
-      <p style="margin-bottom:8px;color:#999;"><strong>Date:</strong> ${new Date(item.date).toLocaleDateString()}</p>
-  `;
-  
-  if (item.folderId) {
-    const folder = flatFolders.find(f => f.id === item.folderId);
-    if (folder) html += `<p style="margin-bottom:8px;color:#999;"><strong>Folder:</strong> ${folder.name}</p>`;
-  }
-  
-  if (item.dueDate) {
-    html += `<p style="margin-bottom:8px;color:#999;"><strong>Due:</strong> ${new Date(item.dueDate).toLocaleDateString()}</p>`;
-  }
-  
-  if (item.assignee) {
-    html += `<p style="margin-bottom:8px;color:#999;"><strong>Assigned to:</strong> ${item.assignee} ${item.assigneeEmail ? '(' + item.assigneeEmail + ')' : ''}</p>`;
-  }
-  
-  if (item.status) {
-    html += `<p style="margin-bottom:8px;"><strong>Status:</strong> <span class="status-badge ${item.status}">${item.status}</span></p>`;
-  }
-  
-  if (item.description) {
-    html += `<p style="margin-bottom:4px;"><strong>Description:</strong></p>`;
-    html += `<div style="background:#3a3a3a;padding:12px;border-radius:4px;color:#e0e0e0;margin-bottom:12px;">${item.description}</div>`;
-  }
-  
-  if (item.fileUrl) {
-    const isDataUrl = item.fileUrl.startsWith('data:');
-    html += `<p style="margin-bottom:4px;"><strong>Attachment:</strong> ${item.fileName || 'File'}</p>`;
-    html += `<div style="background:#3a3a3a;padding:12px;border-radius:4px;text-align:center;">`;
-    
-    if (isDataUrl) {
-      if (item.fileType === 'pdf') {
-        html += `<iframe src="${item.fileUrl}" style="width:100%;height:300px;border:none;"></iframe>`;
-      } else {
-        html += `<p>File ready for download</p>`;
-      }
-      document.getElementById('previewDownloadBtn').style.display = 'inline-flex';
-      document.getElementById('previewOpenBtn').style.display = 'none';
-    } else {
-      html += `<a href="${item.fileUrl}" target="_blank" style="color:var(--accent);">${item.fileUrl}</a>`;
-      document.getElementById('previewDownloadBtn').style.display = 'none';
-      document.getElementById('previewOpenBtn').style.display = 'inline-flex';
-    }
-    html += `</div>`;
-  } else {
-    document.getElementById('previewDownloadBtn').style.display = 'none';
-    document.getElementById('previewOpenBtn').style.display = 'none';
-  }
-  
-  html += `</div>`;
-  document.getElementById('previewContainer').innerHTML = html;
-  document.getElementById('previewModal').classList.add('active');
-}
-
-function closePreviewModal() {
-  document.getElementById('previewModal').classList.remove('active');
-  previewItem = null;
-}
-
-function downloadPreviewFile() {
-  if (previewItem?.fileUrl) {
-    const a = document.createElement('a');
-    a.href = previewItem.fileUrl;
-    a.download = previewItem.fileName || 'download';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }
-}
-
-function openPreviewLink() {
-  if (previewItem?.fileUrl) {
-    window.open(previewItem.fileUrl, '_blank');
-  }
-}
-
-function downloadFile(url) {
-  if (url.startsWith('data:')) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'download';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } else {
-    window.open(url, '_blank');
-  }
-}
-
-// ================================================================
-//  UTILITIES
-// ================================================================
-function populateFolderSelects() {
-  ['parentFolder', 'itemFolder'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.innerHTML = '<option value="">Root</option>';
-      folders.forEach(f => {
-        el.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-      });
-    }
-  });
-}
-
-async function manualSync() {
-  showLoading('Syncing...');
-  await loadFolderTree();
-  await loadItems();
-  hideLoading();
-  showNotif('Sync complete!', 'success');
-}
-
-function showNotif(msg, type) {
-  const n = document.getElementById('notif');
-  n.textContent = msg;
-  n.className = `notif ${type} show`;
-  setTimeout(() => n.classList.remove('show'), 3000);
-}
-
-function showLoading(text) {
-  document.getElementById('loadingText').textContent = text || 'Loading...';
-  document.getElementById('loadingOverlay').classList.add('active');
-}
-
-function hideLoading() {
-  document.getElementById('loadingOverlay').classList.remove('active');
-}
-
-// ================================================================
-//  INITIALIZATION
-// ================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  // Set today's date as default
-  document.getElementById('itemDate').value = new Date().toISOString().split('T')[0];
-  
-  // Drag & drop visual feedback
-  document.addEventListener('dragenter', e => {
-    const folderCard = e.target.closest('.folder-card');
-    if (folderCard) folderCard.classList.add('drag-over');
-  });
-  
-  document.addEventListener('dragleave', e => {
-    const folderCard = e.target.closest('.folder-card');
-    if (folderCard) folderCard.classList.remove('drag-over');
-  });
-});
+document.getElementById('fDate').value=today();
 </script>
 </body>
 </html>
