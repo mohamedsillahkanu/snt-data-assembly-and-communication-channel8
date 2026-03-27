@@ -1,0 +1,20 @@
+section_id,section_name,section_icon,section_flat,section_description,subsection_id,subsection_name
+routine-epi,Routine EPI,chart,false,Epidemiological data,re-dhis2,DHIS2 Routine Data
+routine-epi,Routine EPI,chart,false,Epidemiological data,re-hmis,HMIS Reports
+routine-epi,Routine EPI,chart,false,Epidemiological data,re-facility,Facility Data
+routine-epi,Routine EPI,chart,false,Epidemiological data,re-district,District Data
+intervention,Intervention,activity,false,Intervention data,int-itn,ITN / LLIN Data
+intervention,Intervention,activity,false,Intervention data,int-irs,IRS Data
+intervention,Intervention,activity,false,Intervention data,int-iptp,IPTp Data
+analysis,Analysis,chart,false,Data analysis and validation,an-tpr,Test Positivity Rate
+analysis,Analysis,chart,false,Data analysis and validation,an-incidence,Incidence
+analysis,Analysis,chart,false,Data analysis and validation,an-risk,Risk Classification
+analysis,Analysis,chart,false,Data analysis and validation,an-season,Seasonality
+geospatial,Geospatial,map,false,Maps and spatial analysis,geo-maps,Maps
+geospatial,Geospatial,map,false,Maps and spatial analysis,geo-cluster,Cluster Analysis
+report,Reports,fileText,false,Reports and documents,rp-monthly,Monthly Reports
+report,Reports,fileText,false,Reports and documents,rp-quarterly,Quarterly Reports
+report,Reports,fileText,false,Reports and documents,rp-annual,Annual Reports
+meeting,Meetings,meeting,true,Meeting minutes,,
+email,Email,email,true,Email communications,,
+nextstep,Next Steps,nextstep,true,Action items and tasks,,
