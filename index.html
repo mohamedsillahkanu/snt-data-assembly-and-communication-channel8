@@ -1113,10 +1113,20 @@ async function handleLogin(e){
   btn.disabled=true;btn.textContent='Signing in…';
   try{
     const users=await fetchUsers();
-    const match=users.find(x=>x.username.toLowerCase()===u&&x.password===p);
-    if(match){currentUser=match.name;userRole=match.role;showApp();}
-    else{errEl.textContent='Invalid username or password';errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),3000);}
-  }catch(err){errEl.textContent='Connection error. Check your script URL.';errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),4000);}
+    // Try sheet users first, then DEFAULT_USERS as guaranteed fallback
+    const allUsers=[...users,...DEFAULT_USERS];
+    const match=allUsers.find(x=>x.username&&x.username.toString().toLowerCase()===u&&x.password&&x.password.toString()===p);
+    if(match){currentUser=match.name||match.username;userRole=match.role||'user';showApp();}
+    else{
+      // Show which step failed to help debug
+      const emailExists=allUsers.find(x=>x.username&&x.username.toString().toLowerCase()===u);
+      errEl.textContent=emailExists?'Wrong password — try again':'Email not found in the system';
+      errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),4000);
+    }
+  }catch(err){
+    errEl.textContent='Connection error: '+err.message;
+    errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),5000);
+  }
   btn.disabled=false;btn.textContent='Sign In';
 }
 
