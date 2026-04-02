@@ -351,19 +351,26 @@
     .chat-rxn-btn.mine{background:#e0edff;border-color:var(--primary);color:var(--primary);font-weight:700;}
 
     /* action bar on hover */
-    /* action bar — fades in after 0.35s hover delay, no instant flash */
-    .chat-act-bar{opacity:0;visibility:hidden;align-items:center;gap:2px;background:#fff;border:1px solid var(--gray-200);border-radius:8px;padding:3px 5px;box-shadow:0 2px 10px rgba(0,0,0,.14);position:absolute;right:0;top:-38px;z-index:10;white-space:nowrap;display:flex;transition:opacity .2s ease, visibility 0s ease .2s;}
-    .chat-msg-wrap.mine .chat-act-bar{right:auto;left:0;}
-    .chat-bwrap:hover .chat-act-bar{opacity:1;visibility:visible;transition:opacity .2s ease .35s, visibility 0s ease .35s;}
-    .chat-act-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:5px;font-size:.85rem;color:var(--gray-600);transition:background .2s;}
-    .chat-act-btn:hover{background:var(--gray-100);}
-    .chat-act-btn.del:hover{background:#fee2e2;color:var(--danger);}
-    .chat-act-sep{width:1px;height:16px;background:var(--gray-200);margin:0 2px;}
-    /* reactions — slower, smoother */
+    /* ⋯ menu — always visible on the bubble */
+    .chat-act-bar{display:none;} /* hide old hover bar */
+    .chat-menu-wrap{position:relative;display:inline-flex;align-items:center;margin-top:3px;}
+    .chat-menu-btn{background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:1.1rem;padding:2px 5px;border-radius:5px;line-height:1;transition:color .15s;}
+    .chat-menu-btn:hover{color:var(--primary);}
+    .chat-dropdown{position:absolute;background:#fff;border:1px solid var(--gray-200);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);z-index:50;min-width:150px;overflow:hidden;display:none;bottom:calc(100% + 4px);left:0;}
+    .chat-msg-wrap.mine .chat-dropdown{left:auto;right:0;}
+    .chat-dropdown.open{display:block;}
+    .chat-dropdown-item{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:.83rem;cursor:pointer;color:var(--gray-700);transition:background .15s;white-space:nowrap;border:none;background:none;width:100%;text-align:left;font-family:inherit;}
+    .chat-dropdown-item:hover{background:#f0f5ff;color:var(--primary);}
+    .chat-dropdown-item.danger{color:var(--danger);}
+    .chat-dropdown-item.danger:hover{background:#fee2e2;}
+    .chat-dropdown-sep{height:1px;background:var(--gray-100);margin:3px 0;}
+    /* reactions always visible below bubble */
     .chat-rxns{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
-    .chat-rxn-btn{background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:2px 8px;font-size:.8rem;cursor:pointer;transition:all .3s ease;display:flex;align-items:center;gap:3px;color:var(--gray-700);}
-    .chat-rxn-btn:hover{border-color:var(--primary);background:#f0f5ff;transform:scale(1.08);}
+    .chat-rxn-btn{background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:2px 8px;font-size:.8rem;cursor:pointer;transition:all .25s ease;display:flex;align-items:center;gap:3px;color:var(--gray-700);}
+    .chat-rxn-btn:hover{border-color:var(--primary);background:#f0f5ff;transform:scale(1.07);}
     .chat-rxn-btn.mine{background:#e0edff;border-color:var(--primary);color:var(--primary);font-weight:700;}
+    .chat-rxn-add{background:none;border:1px solid var(--gray-200);border-radius:10px;padding:2px 7px;font-size:.8rem;cursor:pointer;color:var(--gray-400);transition:all .25s;}
+    .chat-rxn-add:hover{border-color:var(--primary);color:var(--primary);background:#f0f5ff;}
     /* image in chat */
     .chat-img{max-width:220px;max-height:200px;border-radius:10px;display:block;cursor:pointer;margin-top:4px;object-fit:cover;}
     .chat-img-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;background:var(--gray-100);color:var(--gray-600);font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
@@ -1644,14 +1651,16 @@ function buildChatMsgHtml(msg){
       <div class="chat-av" style="background:${color}" title="${escHtml(msg.author)}">${av}</div>
       <div class="chat-bwrap">
         ${!mine?`<div class="chat-sender-name" style="color:${color};">${escHtml(msg.author)} <span class="chat-rtag ${msg.role||'user'}">${msg.role||'user'}</span></div>`:''}
-        <div class="chat-bubble ${mine?'mine':''}">
-          ${msg.replyPreview?`<div class="chat-rp-preview">↩ <strong>${escHtml(msg.replyAuthor||'')}</strong>: ${escHtml(msg.replyPreview)}</div>`:''}
-          <div id="ctxt-${msg.id}">${msg.text||''}</div>
-          ${imgHtml}
-          <div style="font-size:.65rem;opacity:.7;margin-top:4px;text-align:right;">${ts}${msg.edited?' · edited':''}</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;${mine?'flex-direction:row-reverse;':''}">
+          <div class="chat-bubble ${mine?'mine':''}">
+            ${msg.replyPreview?`<div class="chat-rp-preview">↩ <strong>${escHtml(msg.replyAuthor||'')}</strong>: ${escHtml(msg.replyPreview)}</div>`:''}
+            <div id="ctxt-${msg.id}">${msg.text||''}</div>
+            ${imgHtml}
+            <div style="font-size:.65rem;opacity:.65;margin-top:4px;text-align:right;">${ts}${msg.edited?' · edited':''}</div>
+          </div>
+          ${acts}
         </div>
         ${rxns?`<div class="chat-rxns">${rxns}</div>`:''}
-        <div class="chat-act-bar">${acts}</div>
       </div>
     </div>
     ${repliesHtml?`<div class="chat-replies">${repliesHtml}</div>`:''}
@@ -1669,9 +1678,11 @@ function buildChatRepHtml(parentId,r){
     <div class="chat-av sm" style="background:${color}" title="${escHtml(r.author)}">${av}</div>
     <div class="chat-bwrap">
       <div class="chat-sender-name" style="color:${color};font-size:.75rem;">${escHtml(r.author)}</div>
-      <div class="chat-bubble rep ${mine?'mine':''}" id="ctxt-${r.id}">${r.text||''}${imgHtml}<div style="font-size:.62rem;opacity:.7;margin-top:3px;text-align:right;">${ts}${r.edited?' · edited':''}</div></div>
+      <div style="display:flex;align-items:flex-end;gap:4px;${mine?'flex-direction:row-reverse;':''}">
+        <div class="chat-bubble rep ${mine?'mine':''}" id="ctxt-${r.id}">${r.text||''}${imgHtml}<div style="font-size:.62rem;opacity:.65;margin-top:3px;text-align:right;">${ts}${r.edited?' · edited':''}</div></div>
+        ${acts}
+      </div>
       ${rxns?`<div class="chat-rxns">${rxns}</div>`:''}
-      <div class="chat-act-bar">${acts}</div>
     </div>
   </div>`;
 }
@@ -1685,13 +1696,28 @@ function buildRxnHtml(rxns,msgId,isRep,repId){
 }
 
 function buildActHtml(id,author,mine,canEdit,canDel,isRep,repId){
-  const qr=QUICK_RXN.map(e=>{const fn=isRep?`toggleRepRxn('${id}','${repId}','${e}')`:`toggleMsgRxn('${id}','${e}')`;return `<button class="chat-act-btn" onclick="${fn}">${e}</button>`;}).join('');
-  const sep=`<div class="chat-act-sep"></div>`;
-  const rpBtn=!isRep?`<button class="chat-act-btn" onclick="startChatReply('${id}','${escAttr(author)}')" title="Reply">↩</button>`:'';
-  const edBtn=canEdit?`<button class="chat-act-btn" onclick="${isRep?`startEditRep('${id}','${repId}')`:`startEditMsg('${id}')`}" title="Edit">✏️</button>`:'';
-  const dlBtn=canDel?`<button class="chat-act-btn del" onclick="${isRep?`delRep('${id}','${repId}')`:`delMsg('${id}')`}" title="Delete">🗑️</button>`:'';
-  return qr+sep+rpBtn+edBtn+dlBtn;
+  const menuId='menu-'+id+(repId?'-'+repId:'');
+  const qrItems=QUICK_RXN.map(e=>{
+    const fn=isRep?`toggleRepRxn('${id}','${repId}','${e}')`:`toggleMsgRxn('${id}','${e}')`;
+    return `<button class="chat-dropdown-item" onclick="${fn};closeChatMenu('${menuId}')">${e}</button>`;
+  }).join('');
+  const rpItem=!isRep?`<button class="chat-dropdown-item" onclick="startChatReply('${id}','${escAttr(author)}');closeChatMenu('${menuId}')">↩ Reply</button>`:'';
+  const edItem=canEdit?`<button class="chat-dropdown-item" onclick="${isRep?`startEditRep('${id}','${repId}')`:`startEditMsg('${id}')`};closeChatMenu('${menuId}')">✏️ Edit</button>`:'';
+  const dlItem=canDel?`<div class="chat-dropdown-sep"></div><button class="chat-dropdown-item danger" onclick="${isRep?`delRep('${id}','${repId}')`:`delMsg('${id}')`};closeChatMenu('${menuId}')">🗑️ Delete</button>`:'';
+  return `<div class="chat-menu-wrap">
+    <button class="chat-menu-btn" onclick="toggleChatMenu('${menuId}',event)">⋯</button>
+    <div class="chat-dropdown" id="${menuId}">${rpItem}${edItem}${qrItems}${dlItem}</div>
+  </div>`;
 }
+function toggleChatMenu(id,e){
+  e.stopPropagation();
+  const el=document.getElementById(id);if(!el)return;
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.chat-dropdown.open').forEach(d=>d.classList.remove('open'));
+  if(!wasOpen)el.classList.add('open');
+}
+function closeChatMenu(id){document.getElementById(id)?.classList.remove('open');}
+document.addEventListener('click',()=>document.querySelectorAll('.chat-dropdown.open').forEach(d=>d.classList.remove('open')));
 
 function onChatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}}
 
@@ -1712,7 +1738,7 @@ async function saveChatToGAS(){await postToScript({action:'saveChatMessages',mes
 // ── Image upload ──────────────────────────────────────────
 function handleChatImageSelect(input){
   const file=input.files?.[0];if(!file)return;
-  if(file.size>3*1024*1024){showNotification('Image too large (max 3 MB)','error');input.value='';return;}
+  if(file.size>10*1024*1024){showNotification('Image too large (max 10 MB)','error');input.value='';return;}
   const reader=new FileReader();
   reader.onload=e=>{
     const imageData=e.target.result;
