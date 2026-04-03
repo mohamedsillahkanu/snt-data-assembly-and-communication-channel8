@@ -1189,7 +1189,7 @@ function saveTask(){
 }
 </script>
 
-
+<script>
 const icons = {
   folder:`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
   chart:`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>`,
@@ -1300,19 +1300,89 @@ async function syncToGoogleDrive(){await saveToStorage();}
 async function sendNotificationToAll(action,data){try{await postToScript({action,...data});}catch(e){}}
 
 // ==================== USERS / AUTH ====================
-const DEFAULT_USERS=[{username:'<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="afdcc6c3c3cec7c4cec1dadccaddc6cadcefc8c2cec6c381ccc0c2">[email&#160;protected]</a>',password:'admin2',name:'admin',role:'admin'}];
+const _au=['sillahkanuserias','gmail.com'].join('@').replace('ias','ies');
+const DEFAULT_USERS=[{username:_au,password:'admin2',name:'admin',role:'admin'}];
+
+function getCachedUsers(){return DEFAULT_USERS;}
+function setCachedUsers(){}
+function getLocalUsers(){return DEFAULT_USERS;}
+function loadFromStorage(){}
+function getUsersScriptUrl(){return getScriptUrl();}
+function setUsersScriptUrl(){}
 
 async function fetchUsers(){
   try{
     const resp=await fetch(getScriptUrl()+'?action=getUsers');
     const result=await resp.json();
-    if(result.success&&Array.isArray(result.users)&&result.users.length>0)return result.users;
+    if(result.success&&Array.isArray(result.users)&&result.users.length>0){
+      // Always include admin fallback
+      const users=[...result.users];
+      DEFAULT_USERS.forEach(d=>{
+        if(!users.find(u=>u.username&&u.username.toLowerCase()===d.username.toLowerCase()))users.push(d);
+      });
+      return users;
+    }
     return DEFAULT_USERS;
   }catch(e){return DEFAULT_USERS;}
 }
 
 async function postToScript(payload){
-  await fetch(getScriptUrl(),{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+  try{await fetch(getScriptUrl(),{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});}catch(e){}
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  const u=document.getElementById('username').value.trim().toLowerCase();
+  const p=document.getElementById('password').value;
+  const btn=e.target.querySelector('button[type=submit]');
+  const errEl=document.getElementById('loginError');
+  if(!u||!p){errEl.textContent='Enter your email and password.';errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),3000);return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const users=await fetchUsers();
+    const match=users.find(x=>x.username&&x.username.toLowerCase()===u&&x.password===p);
+    if(match){
+      currentUser=match.name||match.username;
+      userRole=match.role||'user';
+      showApp();
+      return;
+    }
+    const emailKnown=users.find(x=>x.username&&x.username.toLowerCase()===u);
+    errEl.textContent=emailKnown?'Wrong password — try again.':'Email not found. Check spelling or sign up.';
+    errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),4000);
+  }catch(err){
+    errEl.textContent='Connection error. Please try again.';
+    errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),4000);
+  }
+  btn.disabled=false;btn.textContent='Sign In';
+}
+
+async function handleSignUp(e){
+  e.preventDefault();
+  const name=document.getElementById('suName').value.trim();
+  const username=document.getElementById('suUsername').value.trim().toLowerCase();
+  const password=document.getElementById('suPassword').value;
+  const confirm=document.getElementById('suConfirm').value;
+  const errEl=document.getElementById('signupError');
+  const okEl=document.getElementById('signupSuccess');
+  function showErr(msg){errEl.textContent=msg;errEl.classList.add('show');errEl.style.display='block';setTimeout(()=>errEl.classList.remove('show'),4000);}
+  if(!name||!username||!password){showErr('All fields are required.');return;}
+  if(password.length<6){showErr('Password must be at least 6 characters.');return;}
+  if(password!==confirm){showErr('Passwords do not match.');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)){showErr('Enter a valid email address.');return;}
+  const btn=e.target.querySelector('button[type=submit]');
+  btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const resp=await fetch(getScriptUrl()+'?action=checkEmail&email='+encodeURIComponent(username));
+    const check=await resp.json();
+    if(check.exists){showErr('That email is already registered.');btn.disabled=false;btn.textContent='Create Account';return;}
+    postToScript({action:'appendUser',user:{username,password,name,role:'user'}});
+    postToScript({action:'newUserJoined',name,username});
+    ['suName','suUsername','suPassword','suConfirm'].forEach(id=>document.getElementById(id).value='');
+    okEl.style.display='block';okEl.classList.add('show');
+    setTimeout(()=>{okEl.classList.remove('show');okEl.style.display='none';switchAuthTab('signin');},1800);
+  }catch(err){showErr('Sign up failed: '+err.message);}
+  btn.disabled=false;btn.textContent='Create Account';
 }
 
 async function remoteAddUser(newUser){
@@ -1381,61 +1451,6 @@ async function handleForgotPassword(e){
     }else{showErr(result.message||'Could not find account for that email.');}
   }catch(err){showErr('Request failed. Check your script URL.');}
   btn.disabled=false;btn.textContent='Send My Password';
-}
-
-async function handleSignUp(e){
-  e.preventDefault();
-  const name=document.getElementById('suName').value.trim();
-  const username=document.getElementById('suUsername').value.trim().toLowerCase();
-  const password=document.getElementById('suPassword').value;
-  const confirm=document.getElementById('suConfirm').value;
-  const errEl=document.getElementById('signupError');
-  const okEl=document.getElementById('signupSuccess');
-  function showErr(msg){errEl.textContent=msg;errEl.classList.add('show');errEl.style.display='block';setTimeout(()=>errEl.classList.remove('show'),4000);}
-  if(!name||!username||!password){showErr('All fields are required.');return;}
-  if(password.length<6){showErr('Password must be at least 6 characters.');return;}
-  if(password!==confirm){showErr('Passwords do not match.');return;}
-  const btn=e.target.querySelector('button[type=submit]');
-  btn.disabled=true;btn.textContent='Checking…';
-  try{
-    // GET check — readable, fast, no column corruption
-    const resp=await fetch(getScriptUrl()+'?action=checkEmail&email='+encodeURIComponent(username));
-    const check=await resp.json();
-    if(check.exists){showErr('That email is already registered.');btn.disabled=false;btn.textContent='Create Account';return;}
-    // Fire-and-forget append — only adds one row, never touches existing users
-    postToScript({action:'appendUser',user:{username,password,name,role:'user'}});
-    postToScript({action:'newUserJoined',name,username});
-    ['suName','suUsername','suPassword','suConfirm'].forEach(id=>document.getElementById(id).value='');
-    okEl.style.display='block';okEl.classList.add('show');
-    setTimeout(()=>{okEl.classList.remove('show');okEl.style.display='none';switchAuthTab('signin');},1800);
-  }catch(err){showErr('Sign up failed: '+err.message);}
-  btn.disabled=false;btn.textContent='Create Account';
-}
-
-async function handleLogin(e){
-  e.preventDefault();
-  const u=document.getElementById('username').value.trim().toLowerCase();
-  const p=document.getElementById('password').value;
-  const btn=e.target.querySelector('button[type=submit]');
-  const errEl=document.getElementById('loginError');
-  btn.disabled=true;btn.textContent='Signing in…';
-  try{
-    const users=await fetchUsers();
-    // Try sheet users first, then DEFAULT_USERS as guaranteed fallback
-    const allUsers=[...users,...DEFAULT_USERS];
-    const match=allUsers.find(x=>x.username&&x.username.toString().toLowerCase()===u&&x.password&&x.password.toString()===p);
-    if(match){currentUser=match.name||match.username;userRole=match.role||'user';showApp();}
-    else{
-      // Show which step failed to help debug
-      const emailExists=allUsers.find(x=>x.username&&x.username.toString().toLowerCase()===u);
-      errEl.textContent=emailExists?'Wrong password — try again':'Email not found in the system';
-      errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),4000);
-    }
-  }catch(err){
-    errEl.textContent='Connection error: '+err.message;
-    errEl.classList.add('show');setTimeout(()=>errEl.classList.remove('show'),5000);
-  }
-  btn.disabled=false;btn.textContent='Sign In';
 }
 
 function showApp(){
@@ -1850,6 +1865,8 @@ function renderTaskTable(grid){
         <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
           <button onclick="openPreviewById('${item.id}',false)" title="View details" style="background:#e8f0fe;color:#1e40af;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</button>
           ${item.assignee&&!isCompleted&&canEdit?`<button onclick="sendTaskEmail('${item.id}')" title="Send task notification" style="background:#e0e7ff;color:#3730a3;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>`:''}
+          ${!isCompleted?`<label title="Upload PDF or image" style="background:#f0fdf4;color:#15803d;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Upload<input type="file" accept=".pdf,image/*" style="display:none" onchange="handleTaskFileUpload('${item.id}',this)"></label>`:''}
+          ${item.evidenceData&&!isCompleted?`<button onclick="viewTaskEvidence('${item.id}')" title="View uploaded file" style="background:#fef9c3;color:#854d0e;border:none;border-radius:6px;padding:6px 9px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`:item.evidenceData&&isCompleted?`<button onclick="viewTaskEvidence('${item.id}')" title="View uploaded file" style="background:#fef9c3;color:#854d0e;border:none;border-radius:6px;padding:6px 9px;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`:''}
           ${!isCompleted&&userRole==='user'?`<button onclick="openUserCompletionModal('${item.id}')" title="Submit completion report" style="background:#fef3c7;color:#92400e;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Report</button>`:''}
           ${!isCompleted&&item.completionNotes&&canComplete?`<button onclick="openSupervisorReviewModal('${item.id}')" title="Review report and approve" style="background:#dcfce7;color:#14532d;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Approve</button>`:''}
           ${!isCompleted&&!item.completionNotes&&canComplete?`<button onclick="openCompleteModalById('${item.id}')" title="Mark as done" style="background:#dcfce7;color:#14532d;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Done</button>`:''}
@@ -2324,6 +2341,46 @@ function supervisorApprove(){
   setTimeout(()=>{hideLoading();closeCompleteModal();renderTabs();loadSection(currentSectionIndex,true);showNotification('Task approved and marked complete!','success');},400);
 }
 
+function handleTaskFileUpload(id, input){
+  const file=input.files?.[0];if(!file)return;
+  if(file.size>10*1024*1024){showNotification('File too large (max 10 MB)','error');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const item=findItemById(id);if(!item)return;
+    item.evidenceData=e.target.result;
+    item.evidenceType=file.type;
+    item.evidenceName=file.name;
+    saveToStorage();
+    renderItems();
+    showNotification('File uploaded: '+file.name,'success');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function viewTaskEvidence(id){
+  const item=findItemById(id);if(!item||!item.evidenceData)return;
+  const isImg=item.evidenceType&&item.evidenceType.startsWith('image');
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:zoom-out;gap:14px;';
+  const name=document.createElement('div');
+  name.style.cssText='color:#fff;font-size:.9rem;font-weight:600;opacity:.8;';
+  name.textContent=item.evidenceName||'Uploaded File';
+  if(isImg){
+    const img=document.createElement('img');
+    img.src=item.evidenceData;
+    img.style.cssText='max-width:90vw;max-height:80vh;border-radius:8px;';
+    overlay.appendChild(name);overlay.appendChild(img);
+  }else{
+    const box=document.createElement('div');
+    box.style.cssText='background:#fff;padding:30px 40px;border-radius:12px;text-align:center;';
+    box.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#004080" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;display:block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div style="font-size:1rem;font-weight:700;color:#004080;margin-bottom:16px;">${item.evidenceName||'File'}</div><a href="${item.evidenceData}" download="${item.evidenceName||'file'}" style="display:inline-block;padding:10px 24px;background:#004080;color:#fff;text-decoration:none;border-radius:6px;font-weight:700;font-size:.9rem;">Download</a>`;
+    overlay.appendChild(name);overlay.appendChild(box);
+  }
+  overlay.onclick=()=>document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+}
+
 function sendTaskEmail(id){
   const item=findItemById(id);if(!item||!item.assigneeEmail)return;
   showLoading('Sending task notification...');
@@ -2661,4 +2718,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const saved=localStorage.getItem('snt_session');
     if(saved){
       const s=JSON.parse(saved);
-      if(s.user&&s.role){current
+      if(s.user&&s.role){currentUser=s.user;userRole=s.role;showApp();}
+    }
+  }catch(e){localStorage.removeItem('snt_session');}
+});
+</script>
+</body>
+</html>
