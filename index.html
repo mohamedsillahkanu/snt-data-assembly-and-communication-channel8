@@ -786,17 +786,77 @@
 
 <!-- ===== COMPLETE TASK MODAL ===== -->
 <div class="modal-overlay" id="completeModal">
-  <div class="modal">
-    <div class="modal-header" style="background:var(--success)"><h2>Mark Task Complete</h2><button class="modal-close" onclick="closeCompleteModal()">✕</button></div>
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header" style="background:var(--success);">
+      <h2 id="completeModalTitle">Task Completion Report</h2>
+      <button class="modal-close" onclick="closeCompleteModal()">✕</button>
+    </div>
     <div class="modal-body">
-      <div id="completeTaskInfo" style="background:var(--gray-100);padding:12px;border-radius:8px;margin-bottom:14px;"></div>
-      <div class="form-group"><label>Completion Notes *</label><textarea id="completionNotes" placeholder="Describe what was done..." rows="4"></textarea></div>
-      <div class="form-group"><label>Evidence URL (Optional)</label><input type="text" id="completionFileUrl" placeholder="Link to supporting document"></div>
-      <div class="form-group"><label>Completion Date</label><input type="date" id="completionDate"></div>
+      <div id="completeTaskInfo" style="background:#f0fdf4;padding:12px 16px;border-radius:8px;margin-bottom:16px;border-left:4px solid var(--success);"></div>
+
+      <!-- USER: write report -->
+      <div id="completionReportSection">
+        <div class="form-group">
+          <label>Completion Report *</label>
+          <p style="font-size:.78rem;color:var(--gray-600);margin-bottom:6px;">Describe what was done, key findings, challenges and outcomes.</p>
+          <div class="rich-editor-wrap">
+            <div class="rich-editor-toolbar">
+              <button type="button" onclick="fmt2('bold')"><strong>B</strong></button>
+              <button type="button" onclick="fmt2('italic')"><em>I</em></button>
+              <button type="button" onclick="fmt2('underline')"><u>U</u></button>
+              <span class="sep"></span>
+              <button type="button" onclick="fmt2('insertUnorderedList')">• List</button>
+              <button type="button" onclick="fmt2('insertOrderedList')">1. List</button>
+              <span class="sep"></span>
+              <button type="button" onclick="fmt2('removeFormat')" style="color:var(--danger);">✕</button>
+            </div>
+            <div class="rich-editor-content" id="completionNotes" contenteditable="true" placeholder="Write your completion report here..." style="min-height:140px;"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Completion Date</label>
+          <input type="date" id="completionDate">
+        </div>
+        <div class="form-group">
+          <label>Upload Evidence (PDF or Image)</label>
+          <div class="file-upload-zone" id="completionFileZone" onclick="document.getElementById('completionFileInput').click()" style="padding:18px;text-align:center;cursor:pointer;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:6px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            <p style="margin:0;font-size:.85rem;font-weight:600;color:var(--gray-700);">Click to upload PDF or image</p>
+            <p style="margin:4px 0 0;font-size:.75rem;color:var(--gray-400);">Max 10 MB</p>
+            <p id="completionFileName" style="margin-top:6px;font-size:.8rem;color:var(--primary);font-weight:600;display:none;"></p>
+          </div>
+          <input type="file" id="completionFileInput" accept=".pdf,image/*" style="display:none" onchange="handleCompletionFileSelect(this)">
+        </div>
+        <input type="hidden" id="completionFileData">
+        <input type="hidden" id="completionFileType">
+      </div>
+
+      <!-- SUPERVISOR: view report + add comment + mark complete -->
+      <div id="completionSupervisorSection" style="display:none;">
+        <div id="completionReportView" style="background:#f8faff;border-radius:8px;padding:14px;margin-bottom:14px;border:1px solid #d0e4ff;">
+          <p style="font-size:.78rem;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Completion Report (Read-only)</p>
+          <div id="completionReportContent" style="font-size:.88rem;line-height:1.7;color:var(--gray-800);"></div>
+          <div id="completionEvidenceLink" style="margin-top:10px;display:none;"></div>
+        </div>
+        <div class="form-group">
+          <label>Supervisor Comment</label>
+          <div class="comment-toolbar">
+            <button type="button" onclick="document.execCommand('bold')"><strong>B</strong></button>
+            <button type="button" onclick="document.execCommand('italic')"><em>I</em></button>
+            <button type="button" onclick="document.execCommand('underline')"><u>U</u></button>
+            <span class="sep"></span>
+            <button type="button" onclick="document.execCommand('insertUnorderedList')">• List</button>
+          </div>
+          <div class="comment-editor" id="supervisorCompletionComment" contenteditable="true" placeholder="Add your review, feedback or approval notes..." style="min-height:80px;border-radius:0 0 6px 6px;"></div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeCompleteModal()" style="color:#333;border-color:#ccc;">Cancel</button>
-      <button class="btn btn-success" onclick="confirmComplete()">Complete</button>
+      <button class="btn btn-success" id="submitCompletionBtn" onclick="confirmComplete()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Submit Report
+      </button>
     </div>
   </div>
 </div>
@@ -1489,7 +1549,7 @@ function renderItems(){
       grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">${svgIcon('folder',28)}</div><h3>No items yet</h3><p>Click Add to create the first item</p><button class="btn btn-gold" onclick="openAddModal()" style="margin-top:10px;">Add Item</button></div>`;
     }else{grid.innerHTML='';}return;
   }
-  if(sectionId==='nextstep'||currentItems.every(i=>i.section==='nextstep')){
+  if(sectionId==='nextstep'){
     renderTaskTable(grid);
   } else {
     grid.innerHTML=currentItems.map((item,i)=>buildItemCard(item,i,currentItems)).join('');
@@ -1573,7 +1633,8 @@ function renderTaskTable(grid){
       <!-- Task title + description -->
       <td style="padding:12px 14px;">
         <div style="font-weight:700;color:${isCompleted?'var(--gray-400)':'var(--gray-800)'};${isCompleted?'text-decoration:line-through;':''}line-height:1.4;margin-bottom:2px;word-break:break-word;">${escHtml(item.title)}</div>
-        ${item.description?`<div style="font-size:.73rem;color:var(--gray-500);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${stripHtml(item.description).slice(0,110)}${stripHtml(item.description).length>110?'…':''}</div>`:''}
+        ${item.completionNotes&&!isCompleted?`<span style="display:inline-flex;align-items:center;gap:3px;background:#fef9c3;color:#854d0e;border:1px solid #fde047;padding:2px 7px;border-radius:10px;font-size:.68rem;font-weight:700;margin-top:3px;"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report submitted — awaiting review</span>`:''}
+        ${item.description?`<div style="font-size:.73rem;color:var(--gray-500);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-top:2px;">${stripHtml(item.description).slice(0,110)}${stripHtml(item.description).length>110?'…':''}</div>`:''}
       </td>
 
       <!-- Organisation — inline editable -->
@@ -1644,9 +1705,12 @@ function renderTaskTable(grid){
 
       <!-- Actions -->
       <td style="padding:12px;text-align:center;">
-        <div style="display:flex;gap:4px;justify-content:center;">
-          <button onclick="openPreviewById('${item.id}',false)" title="View details" style="background:#e8f0fe;color:var(--primary);border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</button>
-          ${canComplete&&!isCompleted?`<button onclick="openCompleteModalById('${item.id}')" title="Mark done" style="background:#e8f5e9;color:#2e7d32;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Done</button>`:''} 
+        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
+          <button onclick="openPreviewById('${item.id}',false)" title="View details" style="background:#e8f0fe;color:#1e40af;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View</button>
+          ${item.assignee&&!isCompleted&&canEdit?`<button onclick="sendTaskEmail('${item.id}')" title="Send task notification" style="background:#e0e7ff;color:#3730a3;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>`:''}
+          ${!isCompleted&&userRole==='user'?`<button onclick="openUserCompletionModal('${item.id}')" title="Submit completion report" style="background:#fef3c7;color:#92400e;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Report</button>`:''}
+          ${!isCompleted&&item.completionNotes&&canComplete?`<button onclick="openSupervisorReviewModal('${item.id}')" title="Review report and approve" style="background:#dcfce7;color:#14532d;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Approve</button>`:''}
+          ${!isCompleted&&!item.completionNotes&&canComplete?`<button onclick="openCompleteModalById('${item.id}')" title="Mark as done" style="background:#dcfce7;color:#14532d;border:none;border-radius:6px;padding:6px 10px;font-size:.78rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Done</button>`:''}
           ${canDelete?`<button onclick="openDeleteModalById('${item.id}')" title="Delete" style="background:#fce4ec;color:#c62828;border:none;border-radius:6px;padding:6px 9px;cursor:pointer;display:flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>`:''}
         </div>
       </td>
@@ -1688,6 +1752,17 @@ function cancelInlineDue(id){
 }
 function saveInlineStatus(id,val){
   const item=findItemById(id);if(!item)return;
+  // If supervisor/admin tries to mark complete via dropdown, route through proper approval
+  if(val==='completed'){
+    if(userRole==='supervisor'||userRole==='admin'){
+      openSupervisorReviewModal(id);
+      return;
+    }
+    // User can't set completed directly
+    showNotification('Submit a completion report first — your supervisor will approve','info');
+    renderItems();
+    return;
+  }
   item.status=val;
   saveToStorage();renderItems();
 }
@@ -1991,15 +2066,149 @@ function saveEditReply(){if(editingCommentIdx===null||editingReplyIdx===null||!p
 function cancelEditReply(){editingCommentIdx=null;editingReplyIdx=null;renderComments();}
 
 // ==================== COMPLETE / DELETE ====================
-function openCompleteForItem(item){if(userRole!=='supervisor'&&userRole!=='admin')return;if(!item||item.status==='completed')return;itemToComplete=item;document.getElementById('completeTaskInfo').innerHTML=`<h4 style="font-size:1rem;margin-bottom:6px;">${item.title}</h4><p style="font-size:.85rem;color:var(--gray-600);">${item.dueDate?'Due: '+formatDate(item.dueDate):'No due date'}${item.assignee?' | Assigned: '+item.assignee:''}</p>`;document.getElementById('completionNotes').value='';document.getElementById('completionFileUrl').value='';document.getElementById('completionDate').value=new Date().toISOString().split('T')[0];document.getElementById('completeModal').classList.add('active');}
-function closeCompleteModal(){document.getElementById('completeModal').classList.remove('active');itemToComplete=null;}
-function confirmComplete(){
-  if(!itemToComplete)return;const notes=document.getElementById('completionNotes').value.trim();
-  if(!notes){showNotification('Enter completion notes','error');return;}
-  showLoading('Saving to ICF-SL / NMCP Server...');
-  sections.forEach(s=>{if(s.items){const item=s.items.find(i=>i.id===itemToComplete.id);if(item){item.status='completed';item.completionNotes=notes;item.completionDate=document.getElementById('completionDate').value;item.completedBy=currentUser;const ev=document.getElementById('completionFileUrl').value.trim();if(ev)item.evidenceUrl=ev;}}});
+function fmt2(cmd){document.execCommand(cmd,false,null);document.getElementById('completionNotes')?.focus();}
+
+function openUserCompletionModal(id){
+  const item=findItemById(id);if(!item)return;
+  itemToComplete=item;
+  document.getElementById('completeModalTitle').textContent='Task Completion Report';
+  document.getElementById('submitCompletionBtn').textContent=''; 
+  document.getElementById('submitCompletionBtn').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Submit Report';
+  document.getElementById('submitCompletionBtn').onclick=submitUserReport;
+  document.getElementById('completionReportSection').style.display='block';
+  document.getElementById('completionSupervisorSection').style.display='none';
+  document.getElementById('completeTaskInfo').innerHTML=`<strong style="color:var(--primary);">${escHtml(item.title)}</strong><br><span style="font-size:.8rem;color:var(--gray-600);">Due: ${item.dueDate?formatDate(item.dueDate):'Not set'} ${item.organisation?'· '+item.organisation:''}</span>`;
+  document.getElementById('completionNotes').innerHTML=item.completionNotes||'';
+  document.getElementById('completionDate').value=item.completionDate||new Date().toISOString().split('T')[0];
+  document.getElementById('completionFileName').style.display='none';
+  document.getElementById('completionFileData').value='';
+  document.getElementById('completionFileType').value='';
+  document.getElementById('completeModal').classList.add('active');
+}
+
+function openSupervisorReviewModal(id){
+  const item=findItemById(id);if(!item)return;
+  itemToComplete=item;
+  document.getElementById('completeModalTitle').textContent='Review Completion Report';
+  document.getElementById('submitCompletionBtn').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Approve & Mark Complete';
+  document.getElementById('submitCompletionBtn').style.background='var(--success)';
+  document.getElementById('submitCompletionBtn').onclick=supervisorApprove;
+  document.getElementById('completionReportSection').style.display='none';
+  document.getElementById('completionSupervisorSection').style.display='block';
+  document.getElementById('completeTaskInfo').innerHTML=`<strong style="color:var(--primary);">${escHtml(item.title)}</strong> <span style="background:#dcfce7;color:#14532d;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700;margin-left:6px;">Report Submitted</span><br><span style="font-size:.8rem;color:var(--gray-600);">By: ${escHtml(item.completedBy||'')} · ${item.completionDate?formatDate(item.completionDate):''}</span>`;
+  const reportEl=document.getElementById('completionReportContent');
+  if(reportEl)reportEl.innerHTML=item.completionNotes||'<em style="color:var(--gray-400);">No report content</em>';
+  const evEl=document.getElementById('completionEvidenceLink');
+  if(item.evidenceData){
+    evEl.style.display='block';
+    const isImg=item.evidenceType&&item.evidenceType.startsWith('image');
+    if(isImg){evEl.innerHTML=`<p style="font-size:.78rem;font-weight:600;color:var(--primary);margin-bottom:6px;">Attached Image:</p><img src="${item.evidenceData}" style="max-width:100%;max-height:250px;border-radius:6px;border:1px solid var(--gray-200);">`;}
+    else{evEl.innerHTML=`<a href="${item.evidenceData}" download style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;color:#1e40af;padding:7px 14px;border-radius:6px;font-size:.82rem;font-weight:600;text-decoration:none;"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Download Attached File</a>`;}
+  }else{evEl.style.display='none';}
+  document.getElementById('supervisorCompletionComment').innerHTML='';
+  document.getElementById('completeModal').classList.add('active');
+}
+
+function openCompleteForItem(item){
+  if(userRole==='user'){openUserCompletionModal(item.id);return;}
+  itemToComplete=item;
+  document.getElementById('completeModalTitle').textContent='Mark Task Complete';
+  document.getElementById('submitCompletionBtn').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Mark Complete';
+  document.getElementById('submitCompletionBtn').onclick=confirmComplete;
+  document.getElementById('completionReportSection').style.display='block';
+  document.getElementById('completionSupervisorSection').style.display='none';
+  document.getElementById('completeTaskInfo').innerHTML=`<strong style="color:var(--primary);">${escHtml(item.title)}</strong><br><span style="font-size:.8rem;color:var(--gray-600);">Due: ${item.dueDate?formatDate(item.dueDate):'Not set'}</span>`;
+  document.getElementById('completionNotes').innerHTML='';
+  document.getElementById('completionDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('completionFileData').value='';
+  document.getElementById('completionFileType').value='';
+  document.getElementById('completeModal').classList.add('active');
+}
+
+function handleCompletionFileSelect(input){
+  const file=input.files?.[0];if(!file)return;
+  if(file.size>10*1024*1024){showNotification('File too large (max 10 MB)','error');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('completionFileData').value=e.target.result;
+    document.getElementById('completionFileType').value=file.type;
+    const nm=document.getElementById('completionFileName');
+    nm.textContent='✓ '+file.name;nm.style.display='block';
+    document.getElementById('completionFileZone').classList.add('has-file');
+  };reader.readAsDataURL(file);
+}
+
+function submitUserReport(){
+  const notesEl=document.getElementById('completionNotes');
+  const notes=notesEl?.innerHTML.trim();
+  if(!notes||notes==='<br>'||stripHtml(notes).trim()===''){showNotification('Write your completion report first','error');return;}
+  if(!itemToComplete)return;
+  showLoading('Submitting report to ICF-SL / NMCP Server...');
+  sections.forEach(s=>{if(s.items){const item=s.items.find(i=>i.id===itemToComplete.id);if(item){
+    item.completionNotes=notes;
+    item.completionDate=document.getElementById('completionDate').value;
+    item.completedBy=currentUser;
+    item.status='in-progress';// stay in-progress until supervisor approves
+    const fd=document.getElementById('completionFileData').value;
+    const ft=document.getElementById('completionFileType').value;
+    if(fd){item.evidenceData=fd;item.evidenceType=ft;}
+  }}});
   saveToStorage();
-  sendNotificationToAll('taskCompleted',{taskTitle:itemToComplete.title,completedBy:currentUser,completionNotes:notes.slice(0,200),completionDate:document.getElementById('completionDate').value});
+  sendNotificationToAll('taskCompleted',{taskTitle:itemToComplete.title,completedBy:currentUser,completionNotes:stripHtml(notes).slice(0,200),completionDate:document.getElementById('completionDate').value});
+  setTimeout(()=>{hideLoading();closeCompleteModal();renderTabs();loadSection(currentSectionIndex,true);showNotification('Report submitted! Supervisor will review.','success');},400);
+}
+
+function supervisorApprove(){
+  if(!itemToComplete)return;
+  const comment=document.getElementById('supervisorCompletionComment')?.innerHTML.trim();
+  showLoading('Saving to ICF-SL / NMCP Server...');
+  sections.forEach(s=>{if(s.items){const item=s.items.find(i=>i.id===itemToComplete.id);if(item){
+    item.status='completed';
+    item.supervisorComment=comment||'';
+    item.supervisorName=currentUser;
+    item.supervisorDate=new Date().toISOString();
+    if(comment&&stripHtml(comment).trim()){
+      if(!item.comments)item.comments=[];
+      item.comments.push({id:'c-'+Date.now(),author:currentUser,role:userRole,text:`<strong>Supervisor Review:</strong> ${comment}`,time:new Date().toISOString(),replies:[]});
+    }
+  }}});
+  saveToStorage();
+  sendNotificationToAll('taskCompleted',{taskTitle:itemToComplete.title,completedBy:currentUser,completionNotes:`Approved by ${currentUser}`,completionDate:new Date().toISOString().split('T')[0]});
+  setTimeout(()=>{hideLoading();closeCompleteModal();renderTabs();loadSection(currentSectionIndex,true);showNotification('Task approved and marked complete!','success');},400);
+}
+
+function sendTaskEmail(id){
+  const item=findItemById(id);if(!item||!item.assigneeEmail)return;
+  showLoading('Sending task notification...');
+  postToScript({action:'taskAssigned',taskTitle:item.title,assignee:item.assignee,assigneeEmail:item.assigneeEmail,dueDate:item.dueDate,assignedBy:currentUser,description:stripHtml(item.description||'').slice(0,500),organisation:item.organisation||''});
+  setTimeout(()=>{hideLoading();showNotification(`Task sent to ${item.assignee}!`,'success');},800);
+}
+function closeCompleteModal(){
+  document.getElementById('completeModal').classList.remove('active');
+  itemToComplete=null;
+  const n=document.getElementById('completionNotes');if(n)n.innerHTML='';
+  const sc=document.getElementById('supervisorCompletionComment');if(sc)sc.innerHTML='';
+  document.getElementById('completionFileData').value='';
+  document.getElementById('completionFileType').value='';
+  document.getElementById('completionFileName').style.display='none';
+  document.getElementById('completionFileZone').classList.remove('has-file');
+}
+function confirmComplete(){
+  const notesEl=document.getElementById('completionNotes');
+  const notes=notesEl?.innerHTML?.trim()||'';
+  if(!notes||stripHtml(notes).trim()===''){showNotification('Enter completion notes','error');return;}
+  if(!itemToComplete)return;
+  showLoading('Saving to ICF-SL / NMCP Server...');
+  const fd=document.getElementById('completionFileData')?.value||'';
+  const ft=document.getElementById('completionFileType')?.value||'';
+  sections.forEach(s=>{if(s.items){const item=s.items.find(i=>i.id===itemToComplete.id);if(item){
+    item.status='completed';item.completionNotes=notes;
+    item.completionDate=document.getElementById('completionDate').value;
+    item.completedBy=currentUser;
+    if(fd){item.evidenceData=fd;item.evidenceType=ft;}
+  }}});
+  saveToStorage();
+  sendNotificationToAll('taskCompleted',{taskTitle:itemToComplete.title,completedBy:currentUser,completionNotes:stripHtml(notes).slice(0,200),completionDate:document.getElementById('completionDate').value});
   setTimeout(()=>{hideLoading();closeCompleteModal();renderTabs();loadSection(currentSectionIndex,true);showNotification('Task completed!','success');},400);
 }
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('active');itemToDelete=null;}
